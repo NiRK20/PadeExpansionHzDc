@@ -1,0 +1,49 @@
+theory: {}
+likelihood:
+  lnlikehz:
+    type: []
+    speed: -1
+    stop_at_error: false
+    version: null
+    external: true
+    input_params:
+    - M
+    - h0
+    - q0
+    - j0
+    - s0
+    output_params: []
+prior: {}
+params:
+  M:
+    prior:
+      min: -19.5
+      max: 19.5
+    proposal: -19.23608617349228
+    latex: M
+  h0:
+    prior:
+      min: 40.0
+      max: 100.0
+    proposal: 6.492175289974673
+    latex: H_{0}
+  q0:
+    prior:
+      min: -2
+      max: 2
+    proposal: -0.4960879698744289
+    latex: q_{0}
+  j0:
+    prior:
+      min: -5
+      max: 5
+    proposal: 1.606348009931004
+    latex: j_{0}
+  s0:
+    prior:
+      min: -10
+      max: 10
+    proposal: 3.785090874213947
+    latex: s_{0}
+version: 3.5.7
+output: PSHz_22.post._post

@@ -1,0 +1,79 @@
+theory: null
+likelihood:
+  lnlikehz:
+    type: []
+    speed: -1
+    stop_at_error: false
+    version: null
+    external: true
+    input_params:
+    - M
+    - h0
+    - q0
+    - j0
+    output_params: []
+params:
+  M:
+    prior:
+      min: -19.5
+      max: 19.5
+    proposal: -12.351193838336917
+    latex: M
+  h0:
+    prior:
+      min: 40.0
+      max: 100.0
+    proposal: 69.1043329589236
+    latex: H_{0}
+  q0:
+    prior:
+      min: -2
+      max: 2
+    proposal: -0.5961098582696993
+    latex: q_{0}
+  j0:
+    prior:
+      min: -5
+      max: 5
+    proposal: 2.4549315819076085
+    latex: j_{0}
+sampler:
+  polychord:
+    path: null
+    nlive: 100
+    num_repeats: 2d
+    nprior: 10nlive
+    nfail: nlive
+    do_clustering: true
+    precision_criterion: 0.001
+    max_ndead: .inf
+    compression_factor: 0.36787944117144233
+    callback_function: null
+    logzero: -1.0e+30
+    boost_posterior: 0
+    feedback: null
+    synchronous: true
+    nlives: null
+    maximise: false
+    measure_speeds: true
+    oversample_power: 0.4
+    blocking:
+    - - 1
+      - - M
+        - h0
+        - q0
+        - j0
+    confidence_for_unbounded: 0.9999995
+    seed: null
+    posteriors: true
+    equals: true
+    cluster_posteriors: true
+    write_resume: true
+    read_resume: true
+    write_stats: true
+    write_live: true
+    write_dead: true
+    write_prior: true
+    version: null
+output: PPHz_21
+version: 3.5.7

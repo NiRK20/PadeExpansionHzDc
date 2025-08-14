@@ -1,0 +1,31 @@
+likelihood:
+  lnlikehz: true
+params:
+  M:
+    prior:
+      min: -19.5
+      max: 19.5
+    proposal: -12.351193838336917
+    latex: M
+  h0:
+    prior:
+      min: 40.0
+      max: 100.0
+    proposal: 69.1043329589236
+    latex: H_{0}
+  q0:
+    prior:
+      min: -2
+      max: 2
+    proposal: -0.5961098582696993
+    latex: q_{0}
+  j0:
+    prior:
+      min: -5
+      max: 5
+    proposal: 2.4549315819076085
+    latex: j_{0}
+sampler:
+  polychord:
+    nlive: 100
+output: PPHz_21
