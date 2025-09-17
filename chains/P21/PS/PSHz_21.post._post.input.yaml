@@ -83,5 +83,11 @@ sampler:
     write_dead: true
     write_prior: true
     version: null
-output: PSHz_21
+post:
+  skip_samples: 0.3
+  suffix: _post
+  add:
+    likelihood: {}
+    params: {}
+output: PSHz_21.post._post
 version: 3.5.7
