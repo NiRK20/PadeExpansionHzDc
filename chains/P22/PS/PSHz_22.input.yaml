@@ -5,39 +5,33 @@ params:
     prior:
       min: -19.5
       max: 19.5
-    proposal: -19.25533358791307
+    proposal: -16.31415255626306
     latex: M
   h0:
     prior:
       min: 40.0
       max: 100.0
-    proposal: 73.08447249172586
+    proposal: 16.698506393861372
     latex: H_{0}
   q0:
     prior:
       min: -2
       max: 2
-    proposal: -0.46750522794987914
+    proposal: -0.6364690862763576
     latex: q_{0}
   j0:
     prior:
       min: -5
       max: 5
-    proposal: 0.7097539649754243
+    proposal: 1.6390812142067037
     latex: j_{0}
   s0:
     prior:
       min: -4
       max: 4
-    proposal: -0.7406864658255332
+    proposal: -0.9592556490773507
     latex: s_{0}
-  l0:
-    prior:
-      min: -10
-      max: 10
-    proposal: 4.322112679467326
-    latex: l_{0}
 sampler:
   polychord:
-    nlive: 400
+    nlive: 300
 output: PSHz_22

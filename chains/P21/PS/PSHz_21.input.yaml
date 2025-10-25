@@ -5,32 +5,26 @@ params:
     prior:
       min: -19.5
       max: 19.5
-    proposal: -19.255048763641415
+    proposal: -19.2
     latex: M
-  H0:
+  h0:
     prior:
       min: 40.0
       max: 100.0
-    proposal: 73.1101671680467
+    proposal: 73.03398760350208
     latex: H_{0}
   q0:
     prior:
       min: -2
       max: 0
-    proposal: -0.23004284227988775
+    proposal: -0.5280171275112104
     latex: q_{0}
   j0:
     prior:
       min: -5
       max: 5
-    proposal: 0.5695774210653272
+    proposal: 1.0
     latex: j_{0}
-  s0:
-    prior:
-      min: -4
-      max: 10
-    proposal: -0.502377434711987
-    latex: s_{0}
 sampler:
   polychord:
     nlive: 250
