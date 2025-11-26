@@ -64,8 +64,10 @@ def build_info_dict(modelo, data_pack, nlive):
 
     return info, info_post
 
-def salvar_resultados(gdsamples, args, data, modelo_nome):
-    print("\n--- Processando Resultados ---")
+def salvar_resultados(gdsamples, args, data, modelo_nome, tempo="Indisponível"):
+    print("-"*30)
+    print("PROCESSANDO OS RESULTADOS")
+    print("-"*30)
     
     resultados = anl.MCResult_cobaya(gdsamples)
     
@@ -90,7 +92,7 @@ def salvar_resultados(gdsamples, args, data, modelo_nome):
     k_params = len(mod.MODELOS[args.modelo]["index"])
     BIC = est.deltaBIC(gdsamples, n_dados, k_params)
 
-    resultados.update({"logZ": logZ, "BIC": BIC})
+    resultados.update({"tempo": tempo, "logZ": logZ, "BIC": BIC})
     
     folder_path = Path("resultados") / args.modelo / data["data"]
     print(f"\nCriando diretório {folder_path}")
@@ -99,7 +101,7 @@ def salvar_resultados(gdsamples, args, data, modelo_nome):
     file_name = f"resultado_{args.modelo}_{data['data']}.json"
     path_json = folder_path / file_name
 
-    print(f"Salvando dicionário em {path_json}")
+    print(f"\n\nSalvando dicionário de resultados em {path_json}\n\n")
 
     class NumpyEncoder(json.JSONEncoder):
         def default(self, obj):
@@ -120,7 +122,7 @@ def salvar_resultados(gdsamples, args, data, modelo_nome):
     lista_ordenada = sorted(indices, key=indices.get) 
     params_plot = lista_ordenada[1:] # Remove o primeiro (M)
 
-    print(f"Gerando plots para: {params_plot}")
+    print(f"\n\nGerando plot para: {params_plot}\n\n")
     
     g = plots.getSubplotPlotter()
     g.triangle_plot([gdsamples], params_plot, filled=False, legend_labels=[legenda], legend_loc='upper right')
@@ -128,7 +130,7 @@ def salvar_resultados(gdsamples, args, data, modelo_nome):
     path_pdf = folder_path / f"contornos_{data['data']}_{args.modelo}.pdf"
     g.export(str(path_pdf))
     plt.close()
-    print("Arquivos salvos com sucesso.")
+    print("\n\nArquivos salvos com sucesso.\n\n")
 
 parser = argparse.ArgumentParser(description="Expansão da distância comóvel por aproximantes de Padé")
 
@@ -162,10 +164,15 @@ parser.add_argument(
     action = "store_true"
 )
 
+parser.add_argument(
+    "--bestfit",
+    action = "store_true"
+)
+
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    if args.run or args.process:    
+    if args.run or args.process or args.bestfit:    
         print(f"Carregando dados de cronômetros cósmicos")
         dados_cc = dl.load_chronometers("data/32CCdata.dat", "data/data_MM20.dat")
         print(f"Carregando dados de supernovas (SH0ES={args.sh0es})")
@@ -184,26 +191,61 @@ if __name__ == "__main__":
                 "SNe": dados_sne
             }
     if args.run:
-        print(f"--- Rodando simulação para o modelo {args.modelo}.")
+        print("-"*30)
+        print(f"SIMULAÇÃO PARA O MODELO {args.modelo}")
+        print("-"*30)
         
         info, info_post = build_info_dict(args.modelo, data, args.nlive)
     
-        print(f"Iniciando PolyChord com {args.nlive} live points.")
-        sampler, sampler_post = anl.run_cobaya(info, info_post)
+        print(f"\n\nIniciando PolyChord com {args.nlive} live points.\n\n")
+        sampler, sampler_post, tempo = anl.run_cobaya(info, info_post)
 
         if hasattr(sampler_post, "products"):
             gdsamples = sampler_post.products()["sample"][0].to_getdist()
         else:
             gdsamples = sampler_post
     
-        salvar_resultados(gdsamples, args, data, args.modelo)
+        salvar_resultados(gdsamples, args, data, args.modelo, tempo)
 
-        print("\n\nSimulação encerrada.")
+        print("\n\nSimulação encerrada.\n\n")
 
     if args.process:        
-        print(f"--- Processando cadeias do modelo {args.modelo} ---")
+        print(f"\n\nProcessando cadeias do modelo {args.modelo}\n\n")
 
         path_chain = f'chains/{args.modelo}/{data["data"]}/{data["data"]}_{args.modelo}'
         gdsamples = loadMCSamples(path_chain)
         
         salvar_resultados(gdsamples, args, data, args.modelo)
+
+    if args.bestfit:
+        par_ml = list(mod.MODELOS[args.modelo]["values"].values())
+        par_names = list(mod.MODELOS[args.modelo]["values"].keys())
+
+        print("\n")
+        print("-"*30)
+        print("Calculando bestfit")
+        print("-"*30)
+        print("\n")
+        
+        result, tempo = anl.find_bestfit(est.lnprob, par_names, par_ml, args.modelo, data)
+        folder = Path("resultados") / args.modelo / data["data"]
+        file = f"bestfit_{args.modelo}_{data["data"]}.txt"
+        path = folder / file
+        
+        print(f"\nCriando diretório {folder}")
+        folder.mkdir(parents=True, exist_ok=True)
+    
+        with open(path, 'w') as arquivo:
+            arquivo.write("--- Resultado do bestfit ---\n\n")
+            
+            arquivo.write(f"Sucesso: {result['success']}\n")
+            arquivo.write(f"Mensagem: {result['message']}\n")
+            arquivo.write(f"Chi2 mínimo: {result['fun']:.5f}\n")
+            arquivo.write(f"Número de iterações: {result['nit']}\n")
+            arquivo.write(f"Tempo total de execução: {tempo} segundos\n\n")
+            
+            arquivo.write("Valores dos parâmetros para likelihood máxima:\n")
+            for i in range(len(par_names)):
+                arquivo.write(f"{par_names[i]}: {result['x'][i]:.10f}\n")
+                
+        print(f"Bestfit salvos em {path}\n")

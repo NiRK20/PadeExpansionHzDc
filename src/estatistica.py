@@ -31,10 +31,10 @@ def extract_theory_points(theory_x, theory_y, M, data_dict):
         return None
     if SH0ES:
         theory_ynew[~np.array(is_calibrator,dtype='bool')] = 5.0*np.log10((1.0+zcmb)*(1.0+zhel)*np.atleast_1d(fz))+25.
-        return theory_ynew + M
     else:
         theory_ynew = 5.0*np.log10((1.0+zcmb)*(1.0+zhel)*np.atleast_1d(fz))+25.
-        return theory_ynew
+    
+    return theory_ynew + M
 
 def extract_theory_pointsHz(theory_x, theory_y, data_dict):
     zHz = data_dict["z"]

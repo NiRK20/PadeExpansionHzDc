@@ -5,21 +5,21 @@ import matplotlib.pyplot as plt
 from cobaya import run
 
 
-def find_bestfit(lnlike, parnames, par_ml):#,data):
+def find_bestfit(lnlike, parnames, par_ml, modelo, data):#,data):
     t1 = time.time()
     ndim = len(par_ml)
     chi2 = lambda *args: -2 * lnlike(*args)
-    result = op.minimize(chi2, par_ml)#, args=data)
+    result = op.minimize(chi2, par_ml, args=(modelo, data))
     if not result['success']:
-        result = op.minimize(chi2, par_ml, method='Nelder-Mead',options={'maxiter': 10000})#, args=data
+        result = op.minimize(chi2, par_ml, args=(modelo,data), method='Nelder-Mead',options={'maxiter': 10000})
     par_ml = result["x"]
-    print('Maximum likelihood result:')
+    print('\n\nMaximum likelihood result:')
     for i in range(ndim):
         print(parnames[i],' = ',par_ml[i])
     print('chi2min =',result['fun'])
     t2 = time.time()
-    print("tempo total: {0:5.3f} seg".format(t2-t1))
-    return result
+    print("tempo total: {0:5.3f} seg\n\n".format(t2-t1))
+    return result, t2-t1
 
 def run_cobaya(info, info_post):
     print("----- INICIANDO SAMPLER -----")
@@ -32,9 +32,11 @@ def run_cobaya(info, info_post):
     print("----- RETIRANDO O INICIO -----")
     updated_info_post, sampler_post = run(info_post)
 
-    print(f"Tempo de execução: {time.time()-t1} s")
+    t2 = time.time()-t1
 
-    return sampler, sampler_post
+    print(f"\n --- TEMPO DE EXECUÇÃO: {t2} segundos.")
+
+    return sampler, sampler_post, t2
 
 def MCResult_cobaya(sampler):
     if hasattr(sampler, "products"):
@@ -66,12 +68,3 @@ def MCResult_cobaya(sampler):
         }})
             
     return resultados
-    
-def plot_getdist(samples, params, legends, width=8, fill=False):
-    gsamples = []
-    for i in samples:
-        gsamples.append(i.products()["sample"][0].to_getdist())
-
-    g = gdplt.getSubplotPlotter(width_inch=width)
-    g.triangle_plot(gsamples, params, filled=fill, legend_labels=legends)
-    plt.show()

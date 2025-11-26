@@ -1,0 +1,13 @@
+--- Resultado do bestfit ---
+
+Sucesso: False
+Mensagem: Maximum number of iterations has been exceeded.
+Chi2 mínimo: inf
+Número de iterações: 10000
+Tempo total de execução: 43.74945378303528 segundos
+
+Valores dos parâmetros para likelihood máxima:
+M: -19.2000000000
+h0: 73.0339876035
+q0: -0.5280171275
+j0: 1.0000000000

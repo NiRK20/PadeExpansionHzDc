@@ -1,0 +1,14 @@
+--- Resultado do bestfit ---
+
+Sucesso: True
+Mensagem: Optimization terminated successfully.
+Chi2 mínimo: 1417.27424
+Número de iterações: 203
+Tempo total de execução: 4.162998199462891 segundos
+
+Valores dos parâmetros para likelihood máxima:
+M: -2.6780258466
+h0: 67.7782793624
+q0: -0.4806715196
+j0: 0.9644899668
+s0: 0.4059360402
