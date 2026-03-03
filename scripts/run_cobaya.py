@@ -167,20 +167,24 @@ if __name__ == "__main__":
     if args.run or args.process or args.bestfit:    
         print(f"\nCarregando dados de cronômetros cósmicos")
         dados_cc = dl.load_chronometers("data/32CCdata.dat", "data/data_MM20.dat")
-        print(f"Carregando dados de supernovas (SH0ES={args.sh0es})\n")
+        print(f"Carregando dados de supernovas (SH0ES={args.sh0es})")
         dados_sne = dl.load_pantheon("data/Pantheon+SH0ES.dat", "data/Pantheon+SH0ES_STAT+SYS.cov", SH0ES=args.sh0es)
+        print(f"Carregando dados de BAO\n")
+        dados_bao = dl.load_BAOrd18("data/DA_rd18.txt")
     
         if args.sh0es:
             data = {
                 "data": "PS",
                 "CC": dados_cc,
-                "SNe": dados_sne
+                "SNe": dados_sne,
+                "BAO": dados_bao
             }
         else:
             data = {
                 "data": "PP",
                 "CC": dados_cc,
-                "SNe": dados_sne
+                "SNe": dados_sne,
+                "BAO": dados_bao
             }
     if args.run:
         print("-"*30)

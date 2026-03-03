@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 def load_chronometers(data_file, cov_file):
-    zHz, Hzi, errHz = np.genfromtxt(data_file, comments='#', usecols=(0,1,2), unpack=True, delimiter=',')
+    zHz, Hzi, errHz = np.genfromtxt(data_file, comments='#', usecols=(0,1,2), unpack=True)
     zmod, imf, slib, sps, spsooo = np.genfromtxt(cov_file, comments='#', usecols=(0,1,2,3,4), unpack=True)
     
     cov_mat_diag = np.zeros((len(zHz), len(zHz)), dtype='float64') 
@@ -93,3 +93,12 @@ def load_pantheon(data_file, cov_file, SH0ES=False):
             "inv_cov": inv_cov,
             "SH0ES": SH0ES
         }
+def load_BAOrd18(datafile):
+    zBAO, dA_rd, sdArd = np.genfromtxt(datafile, unpack=True)
+    inv_cov = np.diag(1./sdArd**2)
+
+    return {
+        "z": zBAO,
+        "dA_rd": dA_rd,
+        "inv_cov": inv_cov
+    }

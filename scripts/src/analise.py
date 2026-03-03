@@ -4,7 +4,6 @@ from getdist import MCSamples
 import matplotlib.pyplot as plt
 from cobaya import run
 
-
 def find_bestfit(lnlike, parnames, par_ml, modelo, data):#,data):
     t1 = time.time()
     ndim = len(par_ml)

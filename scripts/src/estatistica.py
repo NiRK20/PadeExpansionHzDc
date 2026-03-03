@@ -86,6 +86,21 @@ def chi2_Hz(theta, modelo, data_dict):
     
     return np.dot(np.dot(dh.T,inv_cov),dh)
 
+def chi2_BAO(theta, modelo, data_dict):
+    vobs = data_dict["dA_rd"]
+    z_BAO = data_dict["z"]
+    inv_cov = data_dict["inv_cov"]
+    
+    Ez2i = modelos.MODELOS[modelo]["Ez"](z_BAO, theta)
+    if np.any(Ez2i <= 0):
+        return np.inf
+    
+    f = modelos.MODELOS[modelo]["Dc"](z_BAO, theta)/(1+z_BAO)
+    A = np.dot(np.dot(f.T, inv_cov), f)
+    B = 0.5*(np.dot(np.dot(f.T, inv_cov), vobs)+np.dot(np.dot(vobs.T, inv_cov), f))
+    C = np.dot(np.dot(vobs.T, inv_cov), vobs)
+    return C - B**2/A + np.log(A/(2*np.pi))
+
 def lnprob(theta, modelo, data_pack):
     chi2_total = 0.0
     if "CC" in data_pack:
@@ -95,6 +110,10 @@ def lnprob(theta, modelo, data_pack):
     if "SNe" in data_pack:
         chi2_sne = chi2_SNe(theta, modelo, data_pack["SNe"])
         chi2_total += chi2_sne
+
+    if "BAO" in data_pack:
+        chi2_bao = chi2_BAO(theta, modelo, data_pack["BAO"])
+        chi2_total += chi2_bao
 
     return -0.5*chi2_total
 

@@ -12,11 +12,7 @@ ARQUIVO_STATUS_TEMP = "status_running.txt" # O arquivo que você vai vigiar
 
 # Lista de tarefas
 tarefas = [
-    {"modelo": "P21", "sh0es": False, "nlive": 250},
-    #{"modelo": "P22", "sh0es": False, "nlive": 300},
-    {"modelo": "P31", "sh0es": False, "nlive": 300},
-    {"modelo": "P32", "sh0es": False, "nlive": 350},
-    #{"modelo": "P21", "sh0es": True, "nlive": 250},
+    {"modelo": "P21", "sh0es": True, "nlive": 250},
     #{"modelo": "P22", "sh0es": True, "nlive": 300},
     #{"modelo": "P31", "sh0es": True, "nlive": 300},
     #{"modelo": "P32", "sh0es": True, "nlive": 350},
@@ -66,10 +62,10 @@ def rodar_comando(modelo, usar_shoes, nlive, diretorio_alvo):
         cmd.append("--sh0es")
 
     # Configura ambiente para evitar travamento do PolyChord
-    '''env = os.environ.copy()
+    env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "1"
     env["MPI_NUM_PROCESSES"] = "1"
-    env["PC_NO_MPI"] = "1"'''
+    env["PC_NO_MPI"] = "1"
 
     print(f"\n{'#'*60}")
     print(f"DISPARANDO: {g_job_atual}")
@@ -78,7 +74,7 @@ def rodar_comando(modelo, usar_shoes, nlive, diretorio_alvo):
     try:
         # Roda direto no terminal (sem capturar stdout/stderr)
         # Isso evita o buffer deadlock. O output vai aparecer na tela.
-        subprocess.run(cmd, check=True, cwd=diretorio_alvo)
+        subprocess.run(cmd, check=True, cwd=diretorio_alvo, env=env)
         return True
     except subprocess.CalledProcessError:
         print(f"\n!!! ERRO NO MODELO {g_job_atual} !!!\n")
