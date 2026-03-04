@@ -106,9 +106,9 @@ def salvar_resultados(gdsamples, args, data, modelo_nome, nlive, tempo="Indispon
         json.dump(resultados, f, indent=4, cls=NumpyEncoder)
     
     if data["data"] == "PP":
-        legenda = "CC+Pantheon+"
+        legenda = "CC+Pantheon+BAO"
     elif data["data"] == "PS":
-        legenda = "CC+Pantheon+SH0ES"
+        legenda = "CC+Pantheon+&SH0ES+BAO"
     
     indices = mod.MODELOS[args.modelo]["index"]
     lista_ordenada = sorted(indices, key=indices.get) 

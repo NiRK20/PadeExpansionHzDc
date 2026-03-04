@@ -13,9 +13,9 @@ ARQUIVO_STATUS_TEMP = "status_running.txt" # O arquivo que você vai vigiar
 # Lista de tarefas
 tarefas = [
     {"modelo": "P21", "sh0es": True, "nlive": 250},
-    #{"modelo": "P22", "sh0es": True, "nlive": 300},
-    #{"modelo": "P31", "sh0es": True, "nlive": 300},
-    #{"modelo": "P32", "sh0es": True, "nlive": 350},
+    {"modelo": "P22", "sh0es": True, "nlive": 300},
+    {"modelo": "P31", "sh0es": True, "nlive": 300},
+    {"modelo": "P32", "sh0es": True, "nlive": 350},
 ]
 
 # --- VARIÁVEIS GLOBAIS PARA O MONITOR ---
