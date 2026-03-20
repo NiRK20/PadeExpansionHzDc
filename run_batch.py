@@ -1,157 +1,137 @@
-import subprocess
-import time
-import os
-import sys
-import threading
+import subprocess, time, os, sys, threading
 from datetime import datetime, timedelta
 
-# --- CONFIGURAÇÃO ---
-DIRETORIO_DO_CODIGO = "./scripts" 
-PASTA_RELATORIOS = "./relatorios"
-ARQUIVO_STATUS_TEMP = "status_running.txt" # O arquivo que você vai vigiar
+PATH_CODIGOS = './scripts'
+PATH_RELATORIOS = './relatorios'
+ARQUIVO_STATUS = 'status.txt'
 
-# Lista de tarefas
 tarefas = [
-    {"modelo": "P21", "sh0es": True, "nlive": 250},
-    {"modelo": "P22", "sh0es": True, "nlive": 300},
-    {"modelo": "P31", "sh0es": True, "nlive": 300},
-    {"modelo": "P32", "sh0es": True, "nlive": 350},
+    {'modelo': 'P21', 'dados': ['bao_seb'], 'sh0es': False, 'nlive': 250}
 ]
 
-# --- VARIÁVEIS GLOBAIS PARA O MONITOR ---
-g_job_atual = "Iniciando..."
-g_start_time = time.time()
-g_stop_event = threading.Event() # Bandeira para parar o monitor
+job_atual = 'Iniciando...'
+job_start_time = time.time()
+job_stop_event = threading.Event()
 
 def formatar_tempo(segundos):
     return str(timedelta(seconds=int(segundos)))
 
 def thread_monitoramento():
-    """
-    Função que roda em paralelo. Ela acorda a cada 1s,
-    calcula o tempo e sobrescreve o arquivo de status.
-    """
-    while not g_stop_event.is_set():
-        tempo_decorrido = time.time() - g_start_time
-        tempo_str = formatar_tempo(tempo_decorrido)
-        
+    '''Função que roda em paralelo, atualizando o arquivo status.txt
+    a cada 1 segundo.'''
+
+    while not job_stop_event.is_set():
+        tempo_passado = time.time() - job_start_time
+        tempo_str = formatar_tempo(tempo_passado)
+
         try:
-            with open(ARQUIVO_STATUS_TEMP, "w") as f:
-                f.write(f"--- MONITORAMENTO EM TEMPO REAL ---\n")
-                f.write(f"Atualização: {datetime.now().strftime('%H:%M:%S')}\n")
-                f.write(f"-----------------------------------\n")
-                f.write(f"MODELO ATUAL : {g_job_atual}\n")
-                f.write(f"TEMPO RODANDO: {tempo_str}\n")
-                f.write(f"-----------------------------------\n")
-                f.write(f"(Use 'watch -n 1 cat {ARQUIVO_STATUS_TEMP}' para acompanhar)\n")
+            with open(ARQUIVO_STATUS, 'w') as file:
+                file.write(f'--- MONITORAMENTE EM TEMPO REAL ---\n')
+                file.write(f'Atualização: {datetime.now().strftime("%H:%M:%S")}\n')
+                file.write(20*'-')
+                file.write(f'\nMODELO ATUAL: {job_atual}\n')
+                file.write(f'TEMPO RODANDO: {tempo_str}\n')
+                file.write(20*'-')
+                # Use 'watch -n 1 cat status.txt' para acompanhar
         except:
-            pass # Ignora erros de escrita se o arquivo estiver travado rapidinho
-            
-        time.sleep(1) # Atualiza a cada 1 segundo
+            pass
 
-def rodar_comando(modelo, usar_shoes, nlive, diretorio_alvo):
-    # Atualiza as variáveis globais para o monitor pegar
-    global g_job_atual, g_start_time
-    tag_shoes = "COM_SHOES" if usar_shoes else "SEM_SHOES"
-    g_job_atual = f"{modelo} [{tag_shoes}]"
-    g_start_time = time.time()
+        time.sleep(1)
+
+def rodar_comando(modelo, dados, sh0es, nlive, diretorio):
+    global job_atual, job_start_time
+
+    job_atual = f'{modelo} com {dados}'
+    job_start_time = time.time()
+
+    cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive)]
+    if sh0es:
+        cmd.append('--sh0es')
     
-    # Monta o comando
-    cmd = [sys.executable, "run_cobaya.py", "--run", "--modelo", modelo, "--nlive", str(nlive)]
-    if usar_shoes:
-        cmd.append("--sh0es")
-
-    # Configura ambiente para evitar travamento do PolyChord
+    cmd.append('--dados')
+    for dado in dados:
+        cmd.append(dado)
+    
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "1"
     env["MPI_NUM_PROCESSES"] = "1"
     env["PC_NO_MPI"] = "1"
-
     print(f"\n{'#'*60}")
-    print(f"DISPARANDO: {g_job_atual}")
+    print(f"DISPARANDO: {job_atual}")
     print(f"{'#'*60}\n")
 
     try:
-        # Roda direto no terminal (sem capturar stdout/stderr)
-        # Isso evita o buffer deadlock. O output vai aparecer na tela.
-        subprocess.run(cmd, check=True, cwd=diretorio_alvo, env=env)
+        subprocess.run(cmd, check=True, cwd=diretorio, env=env)
         return True
     except subprocess.CalledProcessError:
-        print(f"\n!!! ERRO NO MODELO {g_job_atual} !!!\n")
+        print(f"\n!!! ERRO NO MODELO {job_atual} !!!\n")
         return False
     except Exception as e:
         print(f"\n!!! ERRO GERAL: {e}\n")
         return False
-
-# --- MAIN ---
-if __name__ == "__main__":
-    if not os.path.exists(PASTA_RELATORIOS): os.makedirs(PASTA_RELATORIOS)
-    if not os.path.exists(DIRETORIO_DO_CODIGO):
-        print(f"Diretório {DIRETORIO_DO_CODIGO} não encontrado.")
+    
+if __name__ == '__main__':
+    if not os.path.exists(PATH_RELATORIOS): os.makedirs(PATH_RELATORIOS)
+    if not os.path.exists(PATH_CODIGOS):
+        print(f'Diretório {PATH_CODIGOS} dos códigos não encontrado...')
         sys.exit(1)
-
-    # 1. Inicia a Thread de Monitoramento
+    
     monitor = threading.Thread(target=thread_monitoramento, daemon=True)
     monitor.start()
 
-    inicio_geral = time.time()
-    data_inicio = datetime.now().strftime('%d/%m/%Y %H:%M')
-    
+    inicio = time.time()
+    data = datetime.now().strftime('%d/%m/%Y %H%M')
+
     lista_sucessos = []
-    lista_falhas = []
+    lista_fracassos = []
 
     try:
-        # 2. Loop de Tarefas
         for job in tarefas:
-            sucesso = rodar_comando(job["modelo"], job["sh0es"], job["nlive"], DIRETORIO_DO_CODIGO)
-            
-            nome_job = f"{job['modelo']} ({'SH0ES' if job['sh0es'] else 'NO_SH0ES'})"
+            sucesso = rodar_comando(job['modelo'], job['dados'], job['sh0es'], job['nlive'], PATH_CODIGOS)
+
+            nome_job = f"{job['modelo']} ({job['dados']})"
             if sucesso:
                 lista_sucessos.append(nome_job)
             else:
-                lista_falhas.append(nome_job)
-                
+                lista_fracassos.append(nome_job)
     except KeyboardInterrupt:
         print("\n\n!!! INTERROMPIDO PELO USUÁRIO !!!\n")
-        
+    
     finally:
-        # 3. Limpeza Final (roda mesmo se der erro)
-        g_stop_event.set() # Para o monitor
-        monitor.join()     # Espera a thread morrer
-        
-        if os.path.exists(ARQUIVO_STATUS_TEMP):
-            os.remove(ARQUIVO_STATUS_TEMP) # Deleta o log temporário
-            print(f"\nArquivo temporário {ARQUIVO_STATUS_TEMP} removido.")
+        job_stop_event.set()
+        monitor.join()
 
-        # 4. Relatório Permanente
-        tempo_total = (time.time() - inicio_geral) / 3600
-        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M')
+        if os.path.exists(ARQUIVO_STATUS):
+            os.remove(ARQUIVO_STATUS)
+            print(f'\nArquivo temporário de status {ARQUIVO_STATUS} removido.')
         
+        tempo_total = (time.time() - inicio)/3600
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M')
+
         relatorio = [
-            "="*60,
-            f"RELATÓRIO FINAL DE BATCH",
-            f"Data: {timestamp}",
-            "="*60,
-            f"Tempo Total: {tempo_total:.2f} horas",
-            f"Sucessos: {len(lista_sucessos)}",
-            f"Falhas:   {len(lista_falhas)}",
-            "-"*60
+            '='*60,
+            'RELATÓRIO FINAL DE BATCH',
+            f'Data: {timestamp}',
+            '-'*60,
+            f'Tempo total: {tempo_total:.2f} horas',
+            f'Sucessos: {len(lista_sucessos)}',
+            f'Fracassos: {len(lista_fracassos)}',
         ]
         
         if lista_sucessos:
             relatorio.append("SUCESSOS:")
             for s in lista_sucessos: relatorio.append(f" [V] {s}")
             
-        if lista_falhas:
+        if lista_fracassos:
             relatorio.append("\nFALHAS:")
-            for f in lista_falhas: relatorio.append(f" [X] {f}")
+            for f in lista_fracassos: relatorio.append(f" [X] {f}")
             
         relatorio.append("="*60)
         texto_final = "\n".join(relatorio)
         
         print("\n" + texto_final + "\n")
         
-        caminho_rel = os.path.join(PASTA_RELATORIOS, f"resumo_{timestamp}.txt")
+        caminho_rel = os.path.join(PATH_RELATORIOS, f"resumo_{timestamp}.txt")
         with open(caminho_rel, "w") as f:
             f.write(texto_final)
             

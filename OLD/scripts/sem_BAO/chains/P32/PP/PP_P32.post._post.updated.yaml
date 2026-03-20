@@ -1,0 +1,50 @@
+theory: {}
+likelihood:
+  lnlike:
+    type: []
+    speed: -1
+    stop_at_error: false
+    version: null
+    external: true
+    input_params:
+    - M
+    - h0
+    - q0
+    - j0
+    - s0
+    - l0
+    output_params: []
+prior: {}
+params:
+  M:
+    prior:
+      min: -19.5
+      max: 19.5
+    latex: M
+  h0:
+    prior:
+      min: 40.0
+      max: 100.0
+    latex: H_{0}
+  q0:
+    prior:
+      min: -2
+      max: 0
+    latex: q_{0}
+  j0:
+    prior:
+      min: -5
+      max: 5
+    latex: j_{0}
+  s0:
+    prior:
+      min: -20
+      max: 50
+    latex: s_{0}
+  l0:
+    prior:
+      min: -10
+      max: 100
+    latex: l_{0}
+version: 3.5.7
+output: PP_P32.post._post

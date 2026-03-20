@@ -7,46 +7,26 @@ def gerar_plot(nome, samples, params, labels, filled=False, fonte_legenda=16):
     g.settings.axes_fontsize = 14
     g.settings.axes_labelsize = 16
     g.triangle_plot(samples, params, filled=filled, legend_labels=labels, legend_loc='upper right')
-    g.export('./plots/CC+PS+BAO/'+nome+'.pdf')
+    g.export('./plots/P21/'+nome+'.pdf')
 
-path_P21='./scripts/chains/P21/PS/PS_P21'
-path_P22='./scripts/chains/P22/PS/PS_P22'
-path_P31='./scripts/chains/P31/PS/PS_P31'
-path_P32='./scripts/chains/P32/PS/PS_P32'
+path_cc = './scripts/chains/P21/CC/P21_CC'
+path_ps='./scripts/chains/P21/Pantheon+&SH0ES/P21_Pantheon+&SH0ES'
+path_bao='./scripts/chains/P21/BAO_SeB/P21_BAO_SeB'
 
-sample_P21=loadMCSamples(path_P21)
-sample_P22=loadMCSamples(path_P22)
-sample_P31=loadMCSamples(path_P31)
-sample_P32=loadMCSamples(path_P32)
+sample_cc=loadMCSamples(path_cc)
+sample_ps=loadMCSamples(path_ps)
+sample_bao=loadMCSamples(path_bao)
 
-params = ['h0', 'q0', 'j0', 's0', 'l0']
-params_l0 = ['h0', 'q0', 'j0', 's0']
-params_s0 = ['h0', 'q0', 'j0']
+param_h0_bao = sample_bao.getParamNames().parWithName('h0')
+if param_h0_bao is not None:
+    param_h0_bao.name = 'h0_ignorado'
+    # Atualiza as referências e os mapeamentos internos do objeto GetDist
+    sample_bao.setParamNames(sample_bao.getParamNames())
 
-samples = [sample_P21, sample_P22, sample_P31, sample_P32]
-samples_P32 = [sample_P21, sample_P22, sample_P31]
+params = ['h0', 'q0', 'j0']
 
-samples_labels = ['$P_{21}$', '$P_{22}$','$P_{31}$','$P_{32}$']
-samples_P32_labels = ['$P_{21}$', '$P_{22}$','$P_{31}$']
+samples = [sample_cc, sample_ps, sample_bao]
 
-nome = 'CC+Pantheon+&SH0ES+BAO_'
+samples_labels = ['CC', 'Pantheon+&SH0ES','BAO']
 
-gerar_plot(nome+'all', samples, params, samples_labels, fonte_legenda=24)
-gerar_plot(nome+'all_filled', samples, params, samples_labels, filled=True, fonte_legenda=24)
-
-gerar_plot(nome+'all_l0', samples, params_l0, samples_labels, fonte_legenda=20)
-gerar_plot(nome+'all_l0_filled', samples, params_l0, samples_labels, filled=True, fonte_legenda=20)
-
-gerar_plot(nome+'all_s0', samples, params_s0, samples_labels, fonte_legenda=18)
-gerar_plot(nome+'all_s0_filled', samples, params_s0, samples_labels, filled=True, fonte_legenda=18)
-
-gerar_plot(nome+'no_P32', samples_P32, params_l0, samples_labels, fonte_legenda=20)
-gerar_plot(nome+'no_P32_filled', samples_P32, params_l0, samples_labels, filled=True, fonte_legenda=20)
-
-gerar_plot(nome+'no_P32_s0', samples_P32, params_s0, samples_labels, fonte_legenda=18)
-gerar_plot(nome+'no_P32_s0_filled', samples_P32, params_s0, samples_labels, filled=True, fonte_legenda=18)
-
-gerar_plot(nome+'P21', sample_P21, params_s0, ['$P_{21}$'])
-gerar_plot(nome+'P22', sample_P22, params_l0, ['$P_{22}$'])
-gerar_plot(nome+'P31', sample_P31, params_l0, ['$P_{31}$'])
-gerar_plot(nome+'P32', sample_P32, params, ['$P_{32}$'])
+gerar_plot('comp_cc_sn_baonoh0', samples, params, samples_labels, fonte_legenda=24)
