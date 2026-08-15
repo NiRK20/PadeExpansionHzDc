@@ -108,3 +108,15 @@ def load_BAO_SeB(arquivo_dados):
     }
 
 # Carregar dados de BAO do DESI DR2
+def load_BAO_DESI(arquivo_dados, arquivo_cov):
+    dt = np.dtype([('z', 'f8'), ('value', 'f8'), ('quantity', 'U15')])
+    zBAO, meanBAO, BAOtype = np.genfromtxt(arquivo_dados, dtype=dt, comments='#', unpack=True)
+    cov_mat = np.genfromtxt(arquivo_cov)
+    inv_cov = np.linalg.inv(cov_mat)
+
+    return {
+        'z': zBAO,
+        'mean': meanBAO,
+        'type': BAOtype,
+        'inv_cov': inv_cov
+    }

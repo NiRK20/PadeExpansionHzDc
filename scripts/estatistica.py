@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.interpolate, modelos
+from scipy.integrate import solve_ivp
 
 zt = np.linspace(0, 2.5, 3000)
 
@@ -69,8 +70,8 @@ def chi2_SNe(theta, modelo, dados):
         return np.dot(np.dot(dm.T, inv_cov), dm)
     else:
         Sa = np.sum(inv_cov)
-        Sr = np.sum(np.dot(dm.t, inv_cov))
-        Srr = np.dot(np.dot(dm.t, inv_cov), dm)
+        Sr = np.sum(np.dot(dm.T, inv_cov))
+        Srr = np.dot(np.dot(dm.T, inv_cov), dm)
         return Srr - Sr**2.0/Sa
 
 # Cronômetros cósmicos
@@ -103,6 +104,45 @@ def chi2_BAO_SeB(theta, modelo, dados):
     B = 0.5*((np.dot(np.dot(f.T, inv_cov), v_obs)) + np.dot(np.dot(v_obs.T, inv_cov), f))
     C = np.dot(np.dot(v_obs.T, inv_cov), v_obs)
     return C - B**2/A + np.log(A/(2*np.pi))
+
+# Bao do DESI DR2
+def chi2_BAO_DESI(theta, modelo, dados):
+    def DV(z, theta, modelo, DCmodel):
+        dEz = z/modelos.MODELOS[modelo]['Ez'](z, theta)
+        Dc = DCmodel(z, theta)
+        dv3 = Dc ** 2 * dEz
+        return dv3 ** (1.0/3.0)
+    
+    def DH(z, theta, modelo):
+        if np.isscalar(z):
+            Ez = modelos.MODELOS[modelo]['Ez'](z, theta)
+        else:
+            Ez = np.array(modelos.MODELOS[modelo]['Ez'](z, theta))
+        
+        rEz = 1.0 / Ez
+
+        return float(rEz) if np.isscalar(z) else rEz
+    
+    DCmodel = modelos.MODELOS[modelo]['Dc']
+    
+    zBAO = dados['z']
+
+    Ezt = modelos.MODELOS[modelo]['Ez'](zBAO, theta)
+    if np.any(Ezt <= 0):
+        return np.inf
+
+    v_teo = np.array([DV(zBAO[0], theta, modelo, DCmodel), DCmodel(zBAO[1], theta), DH(zBAO[2], theta, modelo), DCmodel(zBAO[3], theta), DH(zBAO[4], theta, modelo),
+                      DCmodel(zBAO[5], theta), DH(zBAO[6], theta, modelo), DCmodel(zBAO[7], theta), DH(zBAO[8], theta, modelo), DCmodel(zBAO[9], theta),
+                      DH(zBAO[10], theta, modelo), DH(zBAO[11], theta, modelo), DCmodel(zBAO[12], theta)])
+
+    v_obs = dados['mean']
+    inv_cov = dados['inv_cov']
+
+    A = np.dot(np.dot(v_teo.T, inv_cov), v_teo)
+    B = 0.5*(np.dot(np.dot(v_teo.T, inv_cov), v_obs)+np.dot(np.dot(v_obs.T, inv_cov), v_teo))
+    C = np.dot(np.dot(v_obs.T, inv_cov), v_obs)
+
+    return C - B**2/A + np.log(A/(2*np.pi))
 # endregion
 
 def lnprob(theta, modelo, pack_dados):
@@ -115,6 +155,9 @@ def lnprob(theta, modelo, pack_dados):
 
     if 'BAO_SeB' in pack_dados:
         chi2 += chi2_BAO_SeB(theta, modelo, pack_dados['BAO_SeB'])
+    
+    if 'BAO_DESI' in pack_dados:
+        chi2 += chi2_BAO_DESI(theta, modelo, pack_dados['BAO_DESI'])
     
     return -0.5 * chi2
 

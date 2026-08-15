@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 matplotlib.use('Agg')
+plt.rcParams['text.usetex'] = True
 
 def get_parametros(modelo, pack_dados):
     indices = modelos.MODELOS[modelo]['index']
@@ -80,6 +81,8 @@ def salvar_resultados(gdsamples, args, dados, nlive, tempo=False):
         n_dados += len(dados['SNe']['z'])
     if 'BAO_SeB' in dados:
         n_dados += len(dados['BAO_SeB']['z'])
+    if 'BAO_DESI' in dados:
+        n_dados += len(dados['BAO_DESI']['z'])
     
     n_params = len(modelos.MODELOS[args.modelo]['index'])
     BIC, chi2min = estatistica.deltaBIC(gdsamples, n_dados, n_params)
@@ -109,7 +112,7 @@ def salvar_resultados(gdsamples, args, dados, nlive, tempo=False):
     indices = modelos.MODELOS[args.modelo]['index']
     lista_ordenada = sorted(indices, key=indices.get)
     params_plot = lista_ordenada[1:]
-    legenda = f"{args.modelo} com {dados['data']}"
+    legenda = f"{args.modelo} com {dados['data']}".replace('&', '\\&')
 
     print(f'\nGerando plot para {params_plot}...\n')
 
@@ -170,6 +173,16 @@ if __name__ == '__main__':
                 dados.update({'data': 'BAO_SeB', 'BAO_SeB': dados_bao})
             else:
                 dados.update({'data': f'{dados["data"]}+BAO_SeB', 'BAO_SeB': dados_bao})
+        
+        if any(dado.lower() == 'bao_desi' for dado in args.dados):
+            print(f'\nCarregando dados de BAO do DESI DR2...')
+            path_dados = base_dir/'dados'/'desi_gaussian_bao_ALL_GCcomb_mean.txt'
+            path_cov = base_dir/'dados'/'desi_gaussian_bao_ALL_GCcomb_cov.txt'
+            dados_bao = data_loader.load_BAO_DESI(str(path_dados), str(path_cov))
+            if not dados:
+                dados.update({'data': 'BAO_DESI', 'BAO_DESI': dados_bao})
+            else:
+                dados.update({'data': f'{dados["data"]}+BAO_DESI', 'BAO_DESI': dados_bao})
         
         print(args.dados)
         

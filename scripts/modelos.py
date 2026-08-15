@@ -1,13 +1,46 @@
 c = 299792.458#km/s
+import numpy as np
 
 # Distância comóvel transversal em pc para Universo plano
 def dmModel(z, theta, modelo):
-    h0 = theta[1]
+    if MODELOS[modelo]['cosmo']:
+        h0 = theta[1]
 
-    dH = c/h0 # Distância de Hubble
-    Dcm = MODELOS[modelo]['Dc'](z, theta)
+        dH = c/h0 # Distância de Hubble
+        Dcm = MODELOS[modelo]['Dc'](z, theta)
 
-    return dH*Dcm/(1+z)
+        return dH * Dcm / (1 + z)
+    else:
+        dcm = MODELOS[modelo]['Dc'](z, theta)
+        return c * dcm / (1 + z)
+
+# region Coeficientes Padé
+def restricao_P21(a1, a2, b1):
+    zmax = 2.83
+    cond1 = (1 + b1 * zmax) > 0
+    cond2 = a1 + a2 * zmax + a2 * b1 * zmax ** 2 > 0
+    if cond1 and cond2:
+        return 0.0
+    else:
+        return -np.inf
+
+def HzP21_coef(z, theta): # Parâmetro de Hubble com dimensões
+    a1, a2, b1 = theta
+
+    hz = ((1 + b1 * z) ** 2) / (a1 + a2 * z * (2 + b1 * z))
+
+    return hz
+
+def dcModelP21_coef(z, theta): # Distância comóvel com dimensões
+    a1, a2, b1 = theta
+
+    dc = (a1 * z + a2 * z ** 2)/(1 + b1 * z)
+
+    return dc
+
+# endregion
+
+# region Cosmografia
 
 # region P21
 def EzP21(z, theta):
@@ -22,7 +55,7 @@ def EzP21(z, theta):
     return hz/h0
     
 def DcModelP21(z, theta):
-    M, h0, q0, j0 = theta
+    _, h0, q0, j0 = theta
     
     a1 = 1/h0
     a2 = (1 -2 * j0 + 2 * q0 + 3 * (q0 ** 2))/(6*h0*(1 + q0))
@@ -35,7 +68,7 @@ def DcModelP21(z, theta):
 
 # region P22
 def EzP22(z, theta):
-    M, h0, q0, j0, s0 = theta
+    _, h0, q0, j0, s0 = theta
     
     a1 = 1/h0
     a2 = ((-1 + 5 * j0 -3 * q0 + 6 * j0 * q0 -8 * (q0 ** 2) -6 * (q0 ** 3) + s0)) / (2*h0*((-1 + 2 * j0 -2 * q0 -3 * (q0 ** 2))))
@@ -48,7 +81,7 @@ def EzP22(z, theta):
     return hz/h0
 
 def DcModelP22(z, theta):
-    M, h0, q0, j0, s0 = theta
+    _, h0, q0, j0, s0 = theta
     
     a1 = 1/h0
     a2 = ((-1 + 5 * j0 -3 * q0 + 6 * j0 * q0 -8 * (q0 ** 2) -6 * (q0 ** 3) + s0)) / (2*h0*((-1 + 2 * j0 -2 * q0 -3 * (q0 ** 2))))
@@ -63,7 +96,7 @@ def DcModelP22(z, theta):
 
 # region P31
 def EzP31(z, theta):
-    M, h0, q0, j0, s0 = theta
+    _, h0, q0, j0, s0 = theta
 
     a1 = 1/h0
     a2 = ((-2 + 7 * j0 -6 * q0 + 8 * j0 * q0 -13 * (q0 ** 2) -9 * (q0 **3) + s0))/(4*h0*(-2 + j0 -4 * q0 -3 * (q0 ** 2)))
@@ -76,7 +109,7 @@ def EzP31(z, theta):
     return hz/h0
 
 def DcModelP31(z, theta):
-    M, h0, q0, j0, s0 = theta
+    _, h0, q0, j0, s0 = theta
 
     a1 = 1/h0
     a2 = ((-2 + 7 * j0 -6 * q0 + 8 * j0 * q0 -13 * (q0 ** 2) -9 * (q0 **3) + s0))/(4*h0*(-2 + j0 -4 * q0 -3 * (q0 ** 2)))
@@ -91,7 +124,7 @@ def DcModelP31(z, theta):
 
 # region P32
 def EzP32(z, theta):
-    M, h0, q0, j0, s0, l0 = theta
+    _, h0, q0, j0, s0, l0 = theta
 
     a1 = 1/h0
     
@@ -118,7 +151,7 @@ def EzP32(z, theta):
     return hz/h0
 
 def DcModelP32(z, theta):
-    M, h0, q0, j0, s0, l0 = theta
+    _, h0, q0, j0, s0, l0 = theta
 
     a1 = 1/h0
     
@@ -145,8 +178,37 @@ def DcModelP32(z, theta):
     return h0*dc
 # endregion
 
+# endregion
+
 MODELOS = {
+    "P21_coef": {
+        "cosmo": False,
+        "modelo": "P21_coef",
+        "Ez": HzP21_coef,
+        "Dc": dcModelP21_coef,
+        "params": {
+            "a1": {"prior": {"min": 0.01, "max": 0.025}, "latex": "a_{1}"},
+            "a2": {"prior": {"min": -0.5, "max": 0.5}, "latex": "a_{2}"},
+            "b1": {"prior": {"min": -5, "max": 5}, "latex": "b_{1}"}
+        },
+        "values": {
+            "a1": 0.01369863,
+            "a2": 0.0,
+            "b1": 0.0           
+        },
+        "prior": {
+            "prior_P21": {
+                "type": "custom",
+                "requires": ["a1", "a2", "b1"],
+                "function": restricao_P21,
+            }
+        },
+
+        "index": {"a1": 0, "a2": 1, "b1": 2},
+        "label": r"$P_{21}^{coef}$"
+    },
     "P21": {
+        "cosmo": True,
         "modelo": "P21",
         "Ez": EzP21,
         "Dc": DcModelP21,
@@ -166,6 +228,7 @@ MODELOS = {
         "label": r"$P_{21}$"
     },
     "P22": {
+        "cosmo": True,
         "modelo": "P22",
         "Ez": EzP22,
         "Dc": DcModelP22,
@@ -187,6 +250,7 @@ MODELOS = {
         "label": r"$P_{22}$"
     },
     "P31": {
+        "cosmo": True,
         "modelo": "P31",
         "Ez": EzP31,
         "Dc": DcModelP31,
@@ -208,6 +272,7 @@ MODELOS = {
         "label": r"$P_{31}$"
     },
     "P32": {
+        "cosmo": True,
         "modelo": "P32",
         "Ez": EzP32,
         "Dc": DcModelP32,
