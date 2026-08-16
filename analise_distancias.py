@@ -4,13 +4,12 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
-path_cc = './resultados/P21/CC/resultado_P21_CC.json'
-path_pp = './resultados/P21/Pantheon+/resultado_P21_Pantheon+.json'
-path_ps = './resultados/P21/Pantheon+&SH0ES/resultado_P21_Pantheon+&SH0ES.json'
-path_desi = './resultados/P21/BAO_DESI/resultado_P21_BAO_DESI.json'
-path_seb = './resultados/P21/BAO_SeB/resultado_P21_BAO_SeB.json'
+path_ps_desi = './resultados/P21/CC+Pantheon+&SH0ES+BAO_DESI/resultado_P21_CC+Pantheon+&SH0ES+BAO_DESI.json'
+path_ps_seb = './resultados/P21/CC+Pantheon+&SH0ES+BAO_SeB/resultado_P21_CC+Pantheon+&SH0ES+BAO_SeB.json'
+path_pp_desi = './resultados/P21/CC+Pantheon++BAO_DESI/resultado_P21_CC+Pantheon++BAO_DESI.json'
+path_pp_seb = './resultados/P21/CC+Pantheon++BAO_SeB/resultado_P21_CC+Pantheon++BAO_SeB.json'
 
-paths = [path_cc, path_pp, path_ps, path_desi, path_seb]
+paths = [path_ps_desi, path_ps_seb, path_pp_desi, path_pp_seb]
 
 resultados = []
 
@@ -18,9 +17,10 @@ for path in paths:
     with open(path) as arquivo:
         resultados.append(json.load(arquivo))
 
-res_cc, res_pp, res_ps, res_desi, res_seb = resultados
+res_ps_desi, res_ps_seb, res_pp_desi, res_pp_seb = resultados
 
-z = np.linspace(0, 10, 1000)
+z_max = 10
+z = np.linspace(0, z_max, 1000)
 
 def Ez(z, theta):
     h0, Om = theta
@@ -35,39 +35,35 @@ def DcLCDM(z, theta):
 
     return sol.y[0]
 
-par_cc = res_cc['params']
-par_pp = res_pp['params']
-par_ps = res_ps['params']
-par_desi = res_desi['params']
-par_seb = res_seb['params']
+par_ps_desi = res_ps_desi['params']
+par_ps_seb = res_ps_seb['params']
+par_pp_desi = res_pp_desi['params']
+par_pp_seb = res_pp_seb['params']
 
 theta_LCDM = [73.2, 0.33]
-theta_cc = [par_cc['M']['media'], par_cc['h0']['media'], par_cc['q0']['media'], par_cc['j0']['media']]
-theta_pp = [par_pp['M']['media'], par_pp['h0']['media'], par_pp['q0']['media'], par_pp['j0']['media']]
-theta_ps = [par_ps['M']['media'], par_ps['h0']['media'], par_ps['q0']['media'], par_ps['j0']['media']]
-theta_desi = [par_desi['M']['media'], par_desi['h0']['media'], par_desi['q0']['media'], par_desi['j0']['media']]
-theta_seb = [par_seb['M']['media'], par_seb['h0']['media'], par_seb['q0']['media'], par_seb['j0']['media']]
+theta_ps_desi = [par_ps_desi['M']['media'], par_ps_desi['h0']['media'], par_ps_desi['q0']['media'], par_ps_desi['j0']['media']]
+theta_ps_seb = [par_ps_seb['M']['media'], par_ps_seb['h0']['media'], par_ps_seb['q0']['media'], par_ps_seb['j0']['media']]
+theta_pp_desi = [par_pp_desi['M']['media'], par_pp_desi['h0']['media'], par_pp_desi['q0']['media'], par_pp_desi['j0']['media']]
+theta_pp_seb = [par_pp_seb['M']['media'], par_pp_seb['h0']['media'], par_pp_seb['q0']['media'], par_pp_seb['j0']['media']]
 
 Dc_P21 = modelos.MODELOS['P21']['Dc']
 Ez_P21 = modelos.MODELOS['P21']['Ez']
 
 plt.plot(z, DcLCDM(z, theta_LCDM), label='$\Lambda$CDM')
-plt.plot(z, Dc_P21(z, theta_cc), label='CC')
-plt.plot(z, Dc_P21(z, theta_pp), label='Pantheon+')
-plt.plot(z, Dc_P21(z, theta_ps), label='Pantheon+&SH0ES')
-plt.plot(z, Dc_P21(z, theta_desi), label='DESI')
-plt.plot(z, Dc_P21(z, theta_seb), label='SeB')
+plt.plot(z, Dc_P21(z, theta_ps_desi), label='CC+Pantheon+&SH0ES+DESI')
+plt.plot(z, Dc_P21(z, theta_ps_seb), label='CC+Pantheon+&SH0ES+SeB')
+plt.plot(z, Dc_P21(z, theta_pp_desi), label='CC+Pantheon++DESI')
+plt.plot(z, Dc_P21(z, theta_pp_seb), label='CC+Pantheon++SeB')
 plt.xlabel('$z$')
 plt.ylabel('$D_{C}$')
 plt.legend()
 plt.show()
 
 plt.plot(z, Ez(z, theta_LCDM), label='$\Lambda$CDM')
-plt.plot(z, Ez_P21(z, theta_cc), label='CC')
-plt.plot(z, Ez_P21(z, theta_pp), label='Pantheon+')
-plt.plot(z, Ez_P21(z, theta_ps), label='Pantheon+&SH0ES')
-plt.plot(z, Ez_P21(z, theta_desi), label='DESI')
-plt.plot(z, Ez_P21(z, theta_seb), label='SeB')
+plt.plot(z, Ez_P21(z, theta_ps_desi), label='CC+Pantheon+&SH0ES+DESI')
+plt.plot(z, Ez_P21(z, theta_ps_seb), label='CC+Pantheon+&SH0ES+SeB')
+plt.plot(z, Ez_P21(z, theta_pp_desi), label='CC+Pantheon++DESI')
+plt.plot(z, Ez_P21(z, theta_pp_seb), label='CC+Pantheon++SeB')
 plt.xlabel('$z$')
 plt.ylabel('$E$')
 plt.ylim(0, 60)

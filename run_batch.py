@@ -6,10 +6,10 @@ PATH_RELATORIOS = './relatorios'
 ARQUIVO_STATUS = 'status.txt'
 
 tarefas = [
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': False, 'nlive': 250},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': 250},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': False, 'nlive': 250},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': 250}
+    {'modelo': 'P21', 'dados': ['sne', 'bao_desi'], 'sh0es': False, 'nlive': 250},
+    {'modelo': 'P21', 'dados': ['sne', 'bao_seb'], 'sh0es': False, 'nlive': 250},
+    {'modelo': 'P21', 'dados': ['sne', 'bao_desi'], 'sh0es': True, 'nlive': 250},
+    {'modelo': 'P21', 'dados': ['sne', 'bao_seb'], 'sh0es': True, 'nlive': 250}
 ]
 
 job_atual = 'Iniciando...'
