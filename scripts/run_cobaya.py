@@ -22,10 +22,18 @@ def get_parametros(modelo, pack_dados):
     
     return lnlike
 
-def build_info_dict(modelo, pack_dados, nlive):
+def get_run_tag(nlive, seed):
+    return f"nlive{nlive}_seed{seed}"
+
+def get_chain_path(modelo, nome_dados, nlive, seed):
+    run_tag = get_run_tag(nlive, seed)
+    nome_modelo = modelos.MODELOS[modelo]['modelo']
+    return Path('chains') / nome_modelo / nome_dados / run_tag / f'{nome_modelo}_{nome_dados}'
+
+def build_info_dict(modelo, pack_dados, nlive, seed):
     parametros = list(modelos.MODELOS[modelo]['params'].keys())
 
-    path = f"chains/{modelos.MODELOS[modelo]['modelo']}/{pack_dados['data']}/{modelos.MODELOS[modelo]['modelo']}_{pack_dados['data']}"
+    path = get_chain_path(modelo, pack_dados['data'], nlive, seed)
 
     info = {
         'likelihood': {
@@ -39,15 +47,16 @@ def build_info_dict(modelo, pack_dados, nlive):
 
         'sampler': {
             'polychord': {
-                'nlive': nlive
+                'nlive': nlive,
+                'seed': seed
             }
         },
 
-        'output': path
+        'output': str(path)
     }
 
     info_post = {
-        'output': path,
+        'output': str(path),
         'post': {
             'skip_samples': 0.3,
             'suffix': '_post'
@@ -63,8 +72,8 @@ def salvar_resultados(gdsamples, args, dados, nlive, tempo=False):
 
     resultados = analise.MCResult(gdsamples)
 
-    path_chain = Path(f"chains/{args.modelo}/{dados['data']}/{args.modelo}_{dados['data']}")
-    path_logz = path_chain.with_suffix('.logZ')
+    path_chain = get_chain_path(args.modelo, dados['data'], nlive, args.seed)
+    path_logz = Path(str(path_chain) + '.logZ')
 
     with open(path_logz, 'r') as file:
         for line in file:
@@ -88,9 +97,24 @@ def salvar_resultados(gdsamples, args, dados, nlive, tempo=False):
     BIC, chi2min = estatistica.deltaBIC(gdsamples, n_dados, n_params)
     chi2red = chi2min/(n_dados-n_params)
 
-    resultados.update({'logZ': {'media': logz, 'err': logz_err}, 'chi2': {'chi2min': chi2min, 'chi2red': chi2red, 'n_dados': n_dados, 'n_params': n_params, 'BIC': BIC}, 'nlives': nlive, 'tempo': tempo})
+    resultados.update({
+        'logZ': {
+            'media': logz,
+            'err': logz_err
+        },
+        'chi2': {
+            'chi2min': chi2min,
+            'chi2red': chi2red,
+            'n_dados': n_dados,
+            'n_params': n_params,
+            'BIC': BIC
+        },
+        'nlives': nlive,
+        'sampler_seed': args.seed,
+        'tempo': tempo})
 
-    pasta_path = Path(__file__).resolve().parent.parent / 'resultados' / args.modelo / dados['data']
+    run_tag = get_run_tag(nlive, args.seed)
+    pasta_path = Path(__file__).resolve().parent.parent / 'resultados' / args.modelo / dados['data'] / run_tag
     print(f"\nCriando diretório {pasta_path}...\n")
     pasta_path.mkdir(parents=True, exist_ok=True)
 
@@ -134,6 +158,8 @@ parser.add_argument('--sh0es', action='store_true')
 parser.add_argument('--run', action='store_true')
 parser.add_argument('--process', action='store_true')
 parser.add_argument('--bestfit', action='store_true')
+parser.add_argument('--zmax', type=float, default=None, help='Redshift máximo usado nos dados de BAO')
+parser.add_argument('--seed', type=int, default=42, help='Seed do PyPolyChord')
 
 args = parser.parse_args()
 
@@ -178,11 +204,31 @@ if __name__ == '__main__':
             print(f'\nCarregando dados de BAO do DESI DR2...')
             path_dados = base_dir/'dados'/'desi_gaussian_bao_ALL_GCcomb_mean.txt'
             path_cov = base_dir/'dados'/'desi_gaussian_bao_ALL_GCcomb_cov.txt'
-            dados_bao = data_loader.load_BAO_DESI(str(path_dados), str(path_cov))
+            dados_bao = data_loader.load_BAO_DESI(str(path_dados), str(path_cov), zmax=args.zmax)
+            nome = 'BAO_DESI'
+
+            if args.zmax is not None:
+                nome += f'_zmax{args.zmax:g}'
+
             if not dados:
-                dados.update({'data': 'BAO_DESI', 'BAO_DESI': dados_bao})
+                dados.update({'data': nome, 'BAO_DESI': dados_bao})
             else:
-                dados.update({'data': f'{dados["data"]}+BAO_DESI', 'BAO_DESI': dados_bao})
+                dados.update({'data': f'{dados["data"]}+{nome}', 'BAO_DESI': dados_bao})
+        
+        if any(dado.lower() == 'bao_mock' for dado in args.dados):
+            print(f'\nCarregando dados de BAO simulados...')
+            path_dados = base_dir/'dados'/'mock_lcdm_bao_mean.txt'
+            path_cov = base_dir/'dados'/'desi_gaussian_bao_ALL_GCcomb_cov.txt'
+            dados_bao = data_loader.load_BAO_DESI(str(path_dados), str(path_cov), zmax=args.zmax)
+            nome = 'BAO_MOCK'
+
+            if args.zmax is not None:
+                nome += f'_zmax{args.zmax:g}'
+
+            if not dados:
+                dados.update({'data': nome, 'BAO_DESI': dados_bao})
+            else:
+                dados.update({'data': f'{dados["data"]}+{nome}', 'BAO_DESI': dados_bao})
         
         print(args.dados)
         
@@ -190,7 +236,7 @@ if __name__ == '__main__':
         print(f'SIMULAÇÃO PARA O MODELO {args.modelo}')
         print('-'*30+'\n')
 
-        info, info_post = build_info_dict(args.modelo, dados, args.nlive)
+        info, info_post = build_info_dict(args.modelo, dados, args.nlive, args.seed)
 
         print('-'*30)
         print(f'Iniciando PyPolyChord com {args.nlive} live points...')
@@ -219,7 +265,8 @@ if __name__ == '__main__':
         print("-"*30)
         print("\n")
 
-        pasta_path = Path(__file__).resolve().parent.parent / 'resultados' / args.modelo / dados['data']
+        run_tag = get_run_tag(args.nlive, args.seed)
+        pasta_path = Path(__file__).resolve().parent.parent / 'resultados' / args.modelo / dados['data'] / run_tag
         print(f"\nCriando diretório {pasta_path}...\n")
         pasta_path.mkdir(parents=True, exist_ok=True)
 

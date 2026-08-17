@@ -108,10 +108,20 @@ def load_BAO_SeB(arquivo_dados):
     }
 
 # Carregar dados de BAO do DESI DR2
-def load_BAO_DESI(arquivo_dados, arquivo_cov):
+def load_BAO_DESI(arquivo_dados, arquivo_cov, zmax=None):
     dt = np.dtype([('z', 'f8'), ('value', 'f8'), ('quantity', 'U15')])
     zBAO, meanBAO, BAOtype = np.genfromtxt(arquivo_dados, dtype=dt, comments='#', unpack=True)
     cov_mat = np.genfromtxt(arquivo_cov)
+
+    if zmax is not None:
+        mascara = zBAO <= zmax
+
+        zBAO = zBAO[mascara]
+        meanBAO = meanBAO[mascara]
+        BAOtype = BAOtype[mascara]
+
+        cov_mat = cov_mat[np.ix_(mascara, mascara)]
+    
     inv_cov = np.linalg.inv(cov_mat)
 
     return {

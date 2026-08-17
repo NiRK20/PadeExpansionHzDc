@@ -131,9 +131,23 @@ def chi2_BAO_DESI(theta, modelo, dados):
     if np.any(Ezt <= 0):
         return np.inf
 
-    v_teo = np.array([DV(zBAO[0], theta, modelo, DCmodel), DCmodel(zBAO[1], theta), DH(zBAO[2], theta, modelo), DCmodel(zBAO[3], theta), DH(zBAO[4], theta, modelo),
-                      DCmodel(zBAO[5], theta), DH(zBAO[6], theta, modelo), DCmodel(zBAO[7], theta), DH(zBAO[8], theta, modelo), DCmodel(zBAO[9], theta),
-                      DH(zBAO[10], theta, modelo), DH(zBAO[11], theta, modelo), DCmodel(zBAO[12], theta)])
+    v_teo = []
+
+    for z, tipo in zip(dados['z'], dados['type']):
+        if tipo == 'DV_over_rs':
+            valor = DV(z, theta, modelo, DCmodel)
+        elif tipo == 'DM_over_rs':
+            valor = DCmodel(z, theta)
+        elif tipo == 'DH_over_rs':
+            valor = DH(z, theta, modelo)
+
+        v_teo.append(valor)
+
+    v_teo = np.asarray(v_teo)
+
+    #v_teo = np.array([DV(zBAO[0], theta, modelo, DCmodel), DCmodel(zBAO[1], theta), DH(zBAO[2], theta, modelo), DCmodel(zBAO[3], theta), DH(zBAO[4], theta, modelo),
+    #                  DCmodel(zBAO[5], theta), DH(zBAO[6], theta, modelo), DCmodel(zBAO[7], theta), DH(zBAO[8], theta, modelo), DCmodel(zBAO[9], theta),
+    #                  DH(zBAO[10], theta, modelo), DH(zBAO[11], theta, modelo), DCmodel(zBAO[12], theta)])
 
     v_obs = dados['mean']
     inv_cov = dados['inv_cov']

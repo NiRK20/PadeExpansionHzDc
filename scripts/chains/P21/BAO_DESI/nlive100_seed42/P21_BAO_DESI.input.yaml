@@ -1,0 +1,34 @@
+likelihood:
+  lnlike:
+    external: true
+    input_params:
+    - M
+    - h0
+    - q0
+    - j0
+params:
+  M:
+    prior:
+      min: -19.5
+      max: 19.5
+    latex: M
+  h0:
+    prior:
+      min: 40.0
+      max: 100.0
+    latex: H_{0}
+  q0:
+    prior:
+      min: -2
+      max: 0
+    latex: q_{0}
+  j0:
+    prior:
+      min: -5
+      max: 5
+    latex: j_{0}
+sampler:
+  polychord:
+    nlive: 100
+    seed: 42
+output: P21_BAO_DESI

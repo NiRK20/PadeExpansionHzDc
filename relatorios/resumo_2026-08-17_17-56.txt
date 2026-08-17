@@ -1,0 +1,22 @@
+============================================================
+RELATÓRIO FINAL DE BATCH
+Data: 2026-08-17_17-56
+------------------------------------------------------------
+Tempo total: 0.96 horas
+Sucessos: 13
+Fracassos: 0
+SUCESSOS:
+ [V] P21 (['bao_desi'])
+ [V] P21 (['bao_seb'])
+ [V] P21 (['cc'])
+ [V] P21 (['cc', 'sne', 'bao_desi'])
+ [V] P21 (['cc', 'sne', 'bao_seb'])
+ [V] P21 (['cc', 'sne', 'bao_desi'])
+ [V] P21 (['cc', 'sne', 'bao_seb'])
+ [V] P21 (['sne'])
+ [V] P21 (['sne'])
+ [V] P21 (['sne', 'bao_desi'])
+ [V] P21 (['sne', 'bao_seb'])
+ [V] P21 (['sne', 'bao_desi'])
+ [V] P21 (['sne', 'bao_seb'])
+============================================================
