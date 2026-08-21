@@ -42,7 +42,7 @@ def mount_samples(analises):
         for dados in analises[modelo]:
             string = data_string(dados)
             labels.append(string)
-            paths.append(f'./scripts/chains/{modelo}/{string}/{modelo}_{string}')
+            paths.append(f'./scripts/motor/chains/{modelo}/{string}/{modelo}_{string}')
 
     samples = []
     for path in paths:

@@ -1,27 +1,30 @@
 import subprocess, time, os, sys, threading
 from datetime import datetime, timedelta
 
-PATH_CODIGOS = './scripts'
+PATH_CODIGOS = './scripts/motor'
 PATH_RELATORIOS = './relatorios'
 ARQUIVO_STATUS = 'status.txt'
 
 SEED = 42
 P21_NLIVE = 100
+P22_NLIVE = 150
 
 tarefas = [
-    {'modelo': 'P21', 'dados': ['bao_desi'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['bao_seb'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['cc'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['sne'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['sne'], 'sh0es': True, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['sne', 'bao_desi'], 'sh0es': True, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['sne', 'bao_seb'], 'sh0es': True, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['sne', 'bao_desi'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED},
-    {'modelo': 'P21', 'dados': ['sne', 'bao_seb'], 'sh0es': False, 'nlive': P21_NLIVE, 'seed': SEED}
+    {'modelo': 'P22', 'dados': ['cc'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['sne'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['sne'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['bao_seb'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['bao_desi'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['cc', 'sne'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['cc', 'sne'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},    
+    {'modelo': 'P22', 'dados': ['sne', 'bao_seb'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['sne', 'bao_desi'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},    
+    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'}
 ]
 
 job_atual = 'Iniciando...'
@@ -53,13 +56,13 @@ def thread_monitoramento():
 
         time.sleep(1)
 
-def rodar_comando(modelo, dados, sh0es, nlive, seed, diretorio):
+def rodar_comando(modelo, dados, sh0es, nlive, seed, mock, diretorio):
     global job_atual, job_start_time
 
     job_atual = f'{modelo} com {dados}'
     job_start_time = time.time()
 
-    cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive), '--seed', str(seed)]
+    cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive), '--seed', str(seed), '--mock', str(mock)]
     if sh0es:
         cmd.append('--sh0es')
     
@@ -102,7 +105,7 @@ if __name__ == '__main__':
 
     try:
         for job in tarefas:
-            sucesso = rodar_comando(job['modelo'], job['dados'], job['sh0es'], job['nlive'], job['seed'], PATH_CODIGOS)
+            sucesso = rodar_comando(job['modelo'], job['dados'], job['sh0es'], job['nlive'], job['seed'], job['mock'], PATH_CODIGOS)
 
             nome_job = f"{job['modelo']} ({job['dados']})"
             if sucesso:

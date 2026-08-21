@@ -1,0 +1,25 @@
+============================================================
+RELATÓRIO FINAL DE BATCH
+Data: 2026-08-21_12-42
+------------------------------------------------------------
+Tempo total: 0.00 horas
+Sucessos: 0
+Fracassos: 15
+
+FALHAS:
+ [X] P22 (['cc'])
+ [X] P22 (['sne'])
+ [X] P22 (['sne'])
+ [X] P22 (['bao_seb'])
+ [X] P22 (['bao_desi'])
+ [X] P22 (['cc', 'sne'])
+ [X] P22 (['cc', 'sne'])
+ [X] P22 (['sne', 'bao_seb'])
+ [X] P22 (['sne', 'bao_desi'])
+ [X] P22 (['sne', 'bao_seb'])
+ [X] P22 (['sne', 'bao_desi'])
+ [X] P22 (['cc', 'sne', 'bao_seb'])
+ [X] P22 (['cc', 'sne', 'bao_desi'])
+ [X] P22 (['cc', 'sne', 'bao_seb'])
+ [X] P22 (['cc', 'sne', 'bao_desi'])
+============================================================
