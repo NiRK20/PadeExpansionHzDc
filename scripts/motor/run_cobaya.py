@@ -175,8 +175,17 @@ if __name__ == '__main__':
             case 'LCDM':
                 data_path = base_dir/'mock_data'/'LCDM'
                 mock_prefix = 'mock_LCDM_'
+            case 'P21':
+                data_path = base_dir/'mock_data'/'P21'
+                mock_prefix = 'mock_P21_'
+            case 'P22':
+                data_path = base_dir/'mock_data'/'P22'
+                mock_prefix = 'mock_P22_'
+            case 'P31':
+                data_path = base_dir/'mock_data'/'P31'
+                mock_prefix = 'mock_P31_'
             case _:
-                parser.error('--mock deve ser "False" ou "LCDM"')
+                parser.error('--mock deve ser "False", "LCDM", "P21", "P22" ou "P31".')
         dados = {}
         if any(dado.lower() == 'cc' for dado in args.dados):
             print('\nCarregando dados de cronômetros cósmicos...')

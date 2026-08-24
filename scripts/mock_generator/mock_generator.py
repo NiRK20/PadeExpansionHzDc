@@ -1,22 +1,34 @@
 import numpy as np
-from scripts.motor import data_loader
+from scripts.motor import data_loader, modelos
 from scipy.integrate import quad
 from pathlib import Path
 import pandas as pd
 
+H0 = 67.4 # km/s/Mpc
+Om = 0.315
+c =  299792.458 # km/s
+
 VALFID = {
-    'H0': 67.4, # km/s/Mpc
-    'Om': 0.315,
+    'H0': H0,
+    'Om': Om,
+    'c': c,
     'rd': 147.1, # Mpc
-    'c': 299792.458, # km/s
     'M': -19.25,
-    'dH': 299792.458 / 67.4
+    'dH': c / H0,
+    'q0': (3 / 2) * Om - 1,
+    'j0': 1,
+    's0': 1 - (9 / 2) * Om
+}
+
+THETA = {
+    'LCDM': VALFID['Om'],
+    'P21': (VALFID['M'], VALFID['H0'], VALFID['q0'], VALFID['j0']),
+    'P22': (VALFID['M'], VALFID['H0'], VALFID['q0'], VALFID['j0'], VALFID['s0']),
+    'P31': (VALFID['M'], VALFID['H0'], VALFID['q0'], VALFID['j0'], VALFID['s0'])
 }
 
 PATH_FOLDER = Path(__file__).resolve().parent.parent.parent / 'dados'
-PATH_FOLDER_MOCK = Path(__file__).resolve().parent.parent.parent / 'mock_data' / 'LCDM'
-
-PATH_FOLDER_MOCK.mkdir(parents=True, exist_ok=True)
+PATH_FOLDER_MOCK = Path(__file__).resolve().parent.parent.parent / 'mock_data'
 
 PATH_DATA = {
     'CC': PATH_FOLDER / '33CCdata.dat',
@@ -31,91 +43,133 @@ PATH_COV = {
     'DESI': PATH_FOLDER / 'desi_gaussian_bao_ALL_GCcomb_cov.txt'
 }
 
-def EzLCDM(z):
-    return np.sqrt(VALFID['Om'] * (1 + z)**3 + 1 - VALFID['Om'])
+def EzLCDM(z, Om):
+    return np.sqrt(Om * (1 + z)**3 + 1 - Om)
 
 
-def DcLCDM_scalar(z):
-    dc, _ = quad(lambda zi: 1/EzLCDM(zi), 0, z)
+def DcLCDM_scalar(z, theta):
+    dc, _ = quad(lambda zi, thetai: 1/EzLCDM(zi, thetai), 0, z, args=(theta,))
     return dc
 
 
 DcLCDM = np.vectorize(DcLCDM_scalar)
 
 
-def DhLCDM(z):
-    return VALFID['dH']/EzLCDM(z)
+def Dh(z, Ez, theta):
+    return VALFID['dH']/Ez(z, theta)
 
 
-def DmLCDM(z):
-    return VALFID['dH'] * DcLCDM(z)
+def Dm(z, Dc, theta):
+    return VALFID['dH'] * Dc(z, theta)
 
 
-def DaLCDM(z):
-    return DmLCDM(z)/(1 + z)
+def Da(z, Dc, theta):
+    return Dm(z, Dc, theta)/(1 + z)
 
 
-def DvLCDM(z):
-    return (z * DmLCDM(z)**2 * DhLCDM(z))**(1 / 3)
+def Dv(z, Dc, Ez, theta):
+    return (z * Dm(z, Dc, theta)**2 * Dh(z, Ez, theta))**(1 / 3)
 
 
-cc_data = data_loader.load_cronometros(PATH_DATA['CC'], PATH_COV['CC'])
+MODELOS = {
+    'LCDM': {
+        'name': 'LCDM',
+        'Ez': EzLCDM,
+        'Dc': DcLCDM
+    },
+
+    'P21': {
+        'name': modelos.MODELOS['P21']['modelo'],
+        'Ez': modelos.MODELOS['P21']['Ez'],
+        'Dc': modelos.MODELOS['P21']['Dc']
+    },
+
+    'P22': {
+        'name': modelos.MODELOS['P22']['modelo'],
+        'Ez': modelos.MODELOS['P22']['Ez'],
+        'Dc': modelos.MODELOS['P22']['Dc']
+    },
+
+    'P31': {
+        'name': modelos.MODELOS['P31']['modelo'],
+        'Ez': modelos.MODELOS['P31']['Ez'],
+        'Dc': modelos.MODELOS['P31']['Dc']
+    }
+}
+
+
+cc_data = data_loader.load_cronometros(PATH_DATA['CC'], PATH_COV['CC'], mock=False)
 ps_data = data_loader.load_supernovas(PATH_DATA['SNe'], PATH_COV['SNe'], sh0es=True)
 pp_data = data_loader.load_supernovas(PATH_DATA['SNe'], PATH_COV['SNe'], sh0es=False)
 desi_data = data_loader.load_BAO_DESI(PATH_DATA['DESI'], PATH_COV['DESI'])
 seb_data = data_loader.load_BAO_SeB(PATH_DATA['SeB'])
 
 
-print('GERANDO DADOS DE CC')
-cc_Hz_mock = VALFID['H0'] * EzLCDM(cc_data['z'])
+def create_mock(dtype, model):
+    PATH = PATH_FOLDER_MOCK / f'{model["name"]}'
+    PATH.mkdir(parents=True, exist_ok=True)
+    match dtype:
+        case 'cc':
+            print(f'GERANDO DADOS DE CC DO MODELO {model["name"]}')
+            cc_Hz_mock = VALFID['H0'] * model['Ez'](cc_data['z'], THETA[model['name']])
+            
+            cc_raw = np.genfromtxt(PATH_DATA['CC'], comments='#', dtype=str)
+            cc_raw[:, 1] = [f'{valor:.8f}' for valor in cc_Hz_mock]
+            np.savetxt(PATH / f'33CC_mock_{model["name"]}.dat', cc_raw, fmt='%s', header='z Hz errHz M')
 
-cc_raw = np.genfromtxt(PATH_DATA['CC'], comments='#', dtype=str)
-cc_raw[:, 1] = [f'{valor:.8f}' for valor in cc_Hz_mock]
-np.savetxt(PATH_FOLDER_MOCK / '33CC_mock_LCDM.dat', cc_raw, fmt='%s', header='z Hz errHz M')
+        case 'sne':
+            print(f'GERANDO DADOS DE SNe DO MODELO {model["name"]}')
+            sne_mock = pd.read_csv(PATH_DATA['SNe'], sep=r'\s+')
+            z_hd = sne_mock['zHD'].to_numpy()
+            z_hel = sne_mock['zHEL'].to_numpy()
+            is_calibrator = sne_mock['IS_CALIBRATOR'].astype(bool).to_numpy()
+            
+            m_mock = 5 * np.log10((1 + z_hd) * (1 + z_hel) * Da(z_hd, model['Dc'], THETA[model['name']])) + 25 + VALFID['M']
+            m_mock[is_calibrator] = sne_mock.loc[is_calibrator, 'CEPH_DIST'].to_numpy() + VALFID['M']
+            
+            sne_mock['m_b_corr'] = m_mock
+            
+            sne_mock.to_csv(PATH / f'Pantheon+SH0ES_mock_{model["name"]}.dat', sep=' ', index=False)
 
+        case 'desi':
+            print(f'GERANDO DADOS DE BAO DO DESI DO MODELO {model["name"]}')
+            desi_mock = []
+            for i in range(len(desi_data['type'])):
+                dtype = desi_data['type'][i]
+                zi = desi_data['z'][i]
+                
+                if dtype == 'DV_over_rs':
+                    desi_mock.append(Dv(zi, model['Dc'], model['Ez'], THETA[model['name']])/VALFID['rd'])
+                elif dtype == 'DM_over_rs':
+                    desi_mock.append(Dm(zi, model['Dc'], THETA[model['name']])/VALFID['rd'])
+                elif dtype == 'DH_over_rs':
+                    desi_mock.append(Dh(zi, model['Ez'], THETA[model['name']])/VALFID['rd'])
 
-print('GERANDO DADOS DE SNe')
-sne_mock = pd.read_csv(PATH_DATA['SNe'], sep=r'\s+')
-z_hd = sne_mock['zHD'].to_numpy()
-z_hel = sne_mock['zHEL'].to_numpy()
-is_calibrator = sne_mock['IS_CALIBRATOR'].astype(bool).to_numpy()
+            with open(PATH / f'desi_mean_mock_{model["name"]}.txt', 'w') as arquivo:
+                arquivo.write('# [z] [value at z] [quantity]\n')
+            
+                for z, valor, tipo in zip(
+                    desi_data['z'],
+                    desi_mock,
+                    desi_data['type']
+                ):
+                    arquivo.write(f'{z:.8f} {valor:.12f} {tipo}\n')
 
-m_mock = 5 * np.log10((1 + z_hd) * (1 + z_hel) * DaLCDM(z_hd)) + 25 + VALFID['M']
-m_mock[is_calibrator] = sne_mock.loc[is_calibrator, 'CEPH_DIST'].to_numpy() + VALFID['M']
+        case 'seb':
+            print(f'GERANDO DADOS DE BAO DE SEB DO MODELO {model["name"]}')
+            seb_mock = (VALFID['dH'] / VALFID['rd']) * (model['Dc'](seb_data['z'], THETA[model['name']]) / (1 + seb_data['z']))
+            
+            seb_raw = np.genfromtxt(PATH_DATA['SeB'])
+            seb_raw[:, 1] = seb_mock
+            np.savetxt(PATH / f'Da_rd18_mock_{model["name"]}.txt', seb_raw, fmt='%.12f')
 
-sne_mock['m_b_corr'] = m_mock
+        case _:
+            print('TIPO DE DADO INVÁLIDO')
 
-sne_mock.to_csv(PATH_FOLDER_MOCK / 'Pantheon+SH0ES_mock_LCDM.dat', sep=' ', index=False)
+    print('DADOS GERADOS\n')
 
-
-print('GERANDO DADOS DE BAO DO DESI')
-desi_mock = []
-for i in range(len(desi_data['type'])):
-    dtype = desi_data['type'][i]
-    zi = desi_data['z'][i]
-    
-    if dtype == 'DV_over_rs':
-        desi_mock.append(DvLCDM(zi)/VALFID['rd'])
-    elif dtype == 'DM_over_rs':
-        desi_mock.append(DmLCDM(zi)/VALFID['rd'])
-    elif dtype == 'DH_over_rs':
-        desi_mock.append(DhLCDM(zi)/VALFID['rd'])
-
-
-with open(PATH_FOLDER_MOCK / 'desi_mean_mock_LCDM.txt', 'w') as arquivo:
-    arquivo.write('# [z] [value at z] [quantity]\n')
-
-    for z, valor, tipo in zip(
-        desi_data['z'],
-        desi_mock,
-        desi_data['type']
-    ):
-        arquivo.write(f'{z:.8f} {valor:.12f} {tipo}\n')
-
-
-print('GERANDO DADOS DE BAO DE SEB')
-seb_mock = (VALFID['dH'] / VALFID['rd']) * (DcLCDM(seb_data['z']) / (1 + seb_data['z']))
-
-seb_raw = np.genfromtxt(PATH_DATA['SeB'])
-seb_raw[:, 1] = seb_mock
-np.savetxt(PATH_FOLDER_MOCK / 'Da_rd18_mock_LCDM.txt', seb_raw, fmt='%.12f')
+for modelo in MODELOS:
+    create_mock('cc', MODELOS[modelo])
+    create_mock('sne', MODELOS[modelo])
+    create_mock('desi', MODELOS[modelo])
+    create_mock('seb', MODELOS[modelo])
