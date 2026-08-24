@@ -10,21 +10,10 @@ P21_NLIVE = 100
 P22_NLIVE = 150
 
 tarefas = [
-    {'modelo': 'P22', 'dados': ['cc'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['sne'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['sne'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['bao_seb'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['bao_desi'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['cc', 'sne'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['cc', 'sne'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},    
-    {'modelo': 'P22', 'dados': ['sne', 'bao_seb'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['sne', 'bao_desi'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},    
-    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': False, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P22', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'}
+    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'P31'},
+    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'P31'},
+    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
+    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'}
 ]
 
 job_atual = 'Iniciando...'
@@ -59,7 +48,7 @@ def thread_monitoramento():
 def rodar_comando(modelo, dados, sh0es, nlive, seed, mock, diretorio):
     global job_atual, job_start_time
 
-    job_atual = f'{modelo} com {dados}'
+    job_atual = f'{modelo} com {dados} (SH0ES={sh0es})'
     job_start_time = time.time()
 
     cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive), '--seed', str(seed), '--mock', str(mock)]

@@ -115,7 +115,7 @@ def create_mock(dtype, model):
             
             cc_raw = np.genfromtxt(PATH_DATA['CC'], comments='#', dtype=str)
             cc_raw[:, 1] = [f'{valor:.8f}' for valor in cc_Hz_mock]
-            np.savetxt(PATH / f'33CC_mock_{model["name"]}.dat', cc_raw, fmt='%s', header='z Hz errHz M')
+            np.savetxt(PATH / '33CCdata.dat', cc_raw, fmt='%s', header='z Hz errHz M')
 
         case 'sne':
             print(f'GERANDO DADOS DE SNe DO MODELO {model["name"]}')
@@ -129,7 +129,7 @@ def create_mock(dtype, model):
             
             sne_mock['m_b_corr'] = m_mock
             
-            sne_mock.to_csv(PATH / f'Pantheon+SH0ES_mock_{model["name"]}.dat', sep=' ', index=False)
+            sne_mock.to_csv(PATH / 'Pantheon+SH0ES.dat', sep=' ', index=False)
 
         case 'desi':
             print(f'GERANDO DADOS DE BAO DO DESI DO MODELO {model["name"]}')
@@ -145,7 +145,7 @@ def create_mock(dtype, model):
                 elif dtype == 'DH_over_rs':
                     desi_mock.append(Dh(zi, model['Ez'], THETA[model['name']])/VALFID['rd'])
 
-            with open(PATH / f'desi_mean_mock_{model["name"]}.txt', 'w') as arquivo:
+            with open(PATH / 'desi_gaussian_bao_ALL_GCcomb_mean.txt', 'w') as arquivo:
                 arquivo.write('# [z] [value at z] [quantity]\n')
             
                 for z, valor, tipo in zip(
@@ -161,7 +161,7 @@ def create_mock(dtype, model):
             
             seb_raw = np.genfromtxt(PATH_DATA['SeB'])
             seb_raw[:, 1] = seb_mock
-            np.savetxt(PATH / f'Da_rd18_mock_{model["name"]}.txt', seb_raw, fmt='%.12f')
+            np.savetxt(PATH / 'DA_rd18.txt', seb_raw, fmt='%.12f')
 
         case _:
             print('TIPO DE DADO INVÁLIDO')

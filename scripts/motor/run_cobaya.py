@@ -234,9 +234,7 @@ if __name__ == '__main__':
         if args.zmax is not None:
             dados.update({'data': f'{dados["data"]}_zmax{args.zmax:g}'})
         
-        print(args.dados)
-        
-        print('-'*30)
+        print('\n'+'-'*30)
         print(f'SIMULAÇÃO PARA O MODELO {args.modelo}')
         print('-'*30+'\n')
 

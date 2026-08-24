@@ -1,7 +1,0 @@
-Esqueleto de projeto de geração de dados sintéticos para aproximantes de padé.
-
-1. ESCOLHA DO MODELO
-    Possibilidade de gerar os dados a partir de um modelo LCDM, P21, P22 ou P31.
-
-2. TIPO DE DADO SIMULADO
-    Possibilidade de gerar dados sintéticos de cronômetros cósmicos, supernovas calibradas ou não pelo SH0ES e BAO do DESI ou Staicova & Benisty.
