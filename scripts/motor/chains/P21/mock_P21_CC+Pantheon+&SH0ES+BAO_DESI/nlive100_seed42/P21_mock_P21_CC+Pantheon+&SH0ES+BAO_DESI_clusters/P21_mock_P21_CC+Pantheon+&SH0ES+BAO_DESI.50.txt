@@ -1,0 +1,2 @@
+#        weight    minuslogpost               M              h0              q0              j0   minuslogprior minuslogprior__0            chi2    chi2__lnlike
+ 1.5489273e-306       50223.348      -18.801389       89.181577      -1.0504054       1.0436894       10.753638        10.753638       100425.19       100425.19

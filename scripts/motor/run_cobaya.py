@@ -25,10 +25,10 @@ def get_parametros(modelo, pack_dados):
 def get_run_tag(nlive, seed):
     return f"nlive{nlive}_seed{seed}"
 
-def get_chain_path(modelo, nome_dados, nlive, seed):
+def get_chain_path(modelo, nome_dados, nlive, seed, mock, zmax):
     run_tag = get_run_tag(nlive, seed)
     nome_modelo = modelos.MODELOS[modelo]['modelo']
-    return Path('chains') / nome_modelo / nome_dados / run_tag / f'{nome_modelo}_{nome_dados}'
+    return Path('chains') / nome_modelo / nome_dados / run_tag / f'{nome_modelo}_{nome_dados}_nlive{nlive}_seed{seed}'
 
 def build_info_dict(modelo, pack_dados, nlive, seed):
     parametros = list(modelos.MODELOS[modelo]['params'].keys())
@@ -65,7 +65,7 @@ def build_info_dict(modelo, pack_dados, nlive, seed):
 
     return info, info_post
 
-def salvar_resultados(gdsamples, args, dados, nlive, tempo=False):
+def salvar_resultados(gdsamples, args, dados, nlive, seedtempo=False):
     print('\n'+30*'=')
     print('PROCESSANDO RESULTADOS')
     print(30*'='+'\n')

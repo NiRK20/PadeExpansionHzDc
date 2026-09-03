@@ -6,17 +6,16 @@ PATH_RELATORIOS = './relatorios'
 ARQUIVO_STATUS = 'status.txt'
 
 SEED = 42
-P21_NLIVE = 100
-P22_NLIVE = 150
+P21_NLIVE = 500
+P22_NLIVE = 500
+P31_NLIVE = 500
 
 tarefas = [
-    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'P31'},
-    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'P31'},
-    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_seb'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'},
-    {'modelo': 'P31', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P22_NLIVE, 'seed': SEED, 'mock': 'LCDM'}
+    {'modelo': 'P21', 'dados': ['cc', 'sne', 'bao_desi'], 'sh0es': True, 'nlive': P21_NLIVE, 'seed': SEED, 'zmax': 1.0}
 ]
 
 job_atual = 'Iniciando...'
+batch_start_time = time.time()
 job_start_time = time.time()
 job_stop_event = threading.Event()
 
@@ -29,7 +28,9 @@ def thread_monitoramento():
 
     while not job_stop_event.is_set():
         tempo_passado = time.time() - job_start_time
+        tempo_total = time.time() - batch_start_time
         tempo_str = formatar_tempo(tempo_passado)
+        tempo_total_str = formatar_tempo(tempo_total)
 
         try:
             with open(ARQUIVO_STATUS, 'w') as file:
@@ -37,7 +38,8 @@ def thread_monitoramento():
                 file.write(f'Atualização: {datetime.now().strftime("%H:%M:%S")}\n')
                 file.write(20*'-')
                 file.write(f'\nMODELO ATUAL: {job_atual}\n')
-                file.write(f'TEMPO RODANDO: {tempo_str}\n')
+                file.write(f'TEMPO RODANDO ANÁLISE ATUAL: {tempo_str}\n')
+                file.write(f'TEMPO TOTAL RODANDO: {tempo_total_str}\n')
                 file.write(20*'-')
                 # Use 'watch -n 1 cat status.txt' para acompanhar
         except:
@@ -45,13 +47,16 @@ def thread_monitoramento():
 
         time.sleep(1)
 
-def rodar_comando(modelo, dados, sh0es, nlive, seed, mock, diretorio):
+def rodar_comando(modelo, dados, sh0es, nlive, seed, diretorio, mock=None):
     global job_atual, job_start_time
 
     job_atual = f'{modelo} com {dados} (SH0ES={sh0es})'
     job_start_time = time.time()
 
-    cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive), '--seed', str(seed), '--mock', str(mock)]
+    if mock is None:
+        cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive), '--seed', str(seed)]
+    else:
+        cmd = [sys.executable, 'run_cobaya.py', '--run', '--modelo', modelo, '--nlive', str(nlive), '--seed', str(seed), '--mock', str(mock)]
     if sh0es:
         cmd.append('--sh0es')
     
@@ -94,7 +99,10 @@ if __name__ == '__main__':
 
     try:
         for job in tarefas:
-            sucesso = rodar_comando(job['modelo'], job['dados'], job['sh0es'], job['nlive'], job['seed'], job['mock'], PATH_CODIGOS)
+            if 'mock' in job:
+                sucesso = rodar_comando(job['modelo'], job['dados'], job['sh0es'], job['nlive'], job['seed'], PATH_CODIGOS, mock=job['mock'])
+            else:
+                sucesso = rodar_comando(job['modelo'], job['dados'], job['sh0es'], job['nlive'], job['seed'], PATH_CODIGOS)
 
             nome_job = f"{job['modelo']} ({job['dados']})"
             if sucesso:

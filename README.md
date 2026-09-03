@@ -21,7 +21,7 @@ Para escolher qual modelo ajustar e quais dados usar, basta modificar a lista `t
 - `'dados'`: lista contendo os tipos de dados a serem usados (`'cc'`, `'sne'`, `'bao_desi'` e `'bao_seb'`). A lista pode conter de um a quatro elementos.
 - `'sh0es'`: indicativo para usar ou não a calibração do SH0ES (`True` ou `False`).
 - `'nlive'`: número do parâmetro `nlive` do `PyPolyChord` (variável do tipo `int`).
-- `'seed'`: valor da seed a ser usada pelo `PyPolyChord`.
+- `'seed'`: valor da seed a ser usado pelo `PyPolyChord`.
 - `'mock'`: parâmetro opcional. Se não estiver presente, usará as versões reais dos dados contidos na lista `'dados'`. O valor deve ser um dos quatro modelos usados para gerar os dados sintéticos (`'LCDM'`, `'P21'`, `'P22'` ou `'P31'`).
 
 Uma vez construídos os dicionários dos modelos a serem ajustados, basta rodar o arquivo `run_batch.py`. Os resultados serão salvos na pasta `resultados`.

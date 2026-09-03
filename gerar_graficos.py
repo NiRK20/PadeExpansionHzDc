@@ -1,19 +1,90 @@
 from getdist import loadMCSamples, plots
 import matplotlib.pyplot as plt
 
-analises = {
-    'P21': [['sne', 'bao_seb', 'sh0es'], ['cc', 'sne', 'bao_seb', 'sh0es']]
-}
-nome_arquivo = 'test_CC_SH0ES_P21_SEB'
+plt.rcParams['text.usetex'] = True
 
-def gerar_plot(nome, samples, params, labels, filled=False, fonte_legenda=16, ftype='pdf', param_limits=None):
+ANALISES = {
+    'analise_1': {
+        'modelo': 'P21',
+        'modelo_tex': '$P_{21}$',
+        'dados': ['cc', 'sne', 'bao_desi', 'sh0es'],
+        'nlive': 500,
+        'seed': 42
+    }
+}
+
+
+def montar_amostras(analise):
+    modelo = analise['modelo']
+    plot_label = analise['modelo_tex']
+    dados = analise['dados']
+    nlive = analise['nlive']
+    seed = analise['seed']
+    
+    data_string_parts = []
+
+    if 'cc' in dados:
+        data_string_parts.append('CC')
+
+    if 'sne' in dados:
+        if 'sh0es' in dados:
+            data_string_parts.append('Pantheon+&SH0ES')
+        else:
+            data_string_parts.append('Pantheon+')
+
+    if 'bao_desi' in dados:
+        data_string_parts.append('BAO_DESI')
+
+    if 'bao_seb' in dados:
+        data_string_parts.append('BAO_SeB')
+
+    data_string = '+'.join(data_string_parts)
+
+    nome_arquivo = f'{modelo}_{data_string}'
+    path_arquivo = f'{modelo}/{data_string}/nlive{nlive}_seed{seed}/{nome_arquivo}'
+    samples = loadMCSamples(f'./scripts/motor/chains/{path_arquivo}')
+
+    save_path = f'./plots/{path_arquivo}'
+
+    return samples, plot_label, save_path
+
+
+def plotar_amostra(samples, params, label, save_path, ftype='pdf', fonte_legenda=16, param_limits=None, filled=False):
     g = plots.getSubplotPlotter(width_inch=7, scaling=False)
     g.settings.legend_fontsize = fonte_legenda
     g.settings.axes_fontsize = 14
     g.settings.axes_labelsize = 16
-    g.triangle_plot(samples, params, filled=filled, legend_labels=labels, legend_loc='upper right', param_limits=param_limits or {})
-    g.export('./plots/P21/'+nome+'.'+ftype)
+    g.triangle_plot(samples, params, filled=filled, legend_labels=label, legend_loc='upper right', param_limits=param_limits or {})
+    g.export(f'{save_path}.{ftype}')
 
+
+samples = []
+labels = []
+
+for analise in list(ANALISES.keys()):
+    sample, label, _ = montar_amostras(ANALISES[analise])
+    samples.append(sample)
+    labels.append(label)
+
+params = ['h0', 'q0', 'j0']
+#limites = {'s0': [-10.0, 25.0]}
+#           'j0': [-0.5, 1.0]}
+
+save_path = f'./plots/P21/CC+Pantheon+&SH0ES+BAO_DESI/nlive500_seed42/P21_CC+Pantheon+&SH0ES+BAO_DESI'
+
+
+plotar_amostra(samples, params, labels, save_path)#, param_limits=limites)
+print('Plot feito com sucesso!')
+
+
+
+
+
+
+
+
+    
+'''
 def mount_samples(analises):
 
     def data_string(data):
@@ -43,38 +114,11 @@ def mount_samples(analises):
             string = data_string(dados)
             labels.append(string)
             paths.append(f'./scripts/motor/chains/{modelo}/{string}/{modelo}_{string}')
+            nome_arquivo = f'{modelo}_{string}'
 
     samples = []
     for path in paths:
         samples.append(loadMCSamples(path))
 
-    return samples, labels
-
+    return samples, labels, nome_arquivo
 '''
-param_h0_bao_seb = sample_bao_seb.getParamNames().parWithName('h0')
-if param_h0_bao_seb is not None:
-    param_h0_bao_seb.name = 'h0_ignorado'
-    # Atualiza as referências e os mapeamentos internos do objeto GetDist
-    sample_bao_seb.setParamNames(sample_bao_seb.getParamNames())
-
-param_h0_bao_desi = sample_bao_desi.getParamNames().parWithName('h0')
-if param_h0_bao_desi is not None:
-    param_h0_bao_desi.name = 'h0_ignorado'
-    # Atualiza as referências e os mapeamentos internos do objeto GetDist
-    sample_bao_desi.setParamNames(sample_bao_desi.getParamNames())
-
-param_h0_pp = sample_pp.getParamNames().parWithName('h0')
-if param_h0_pp is not None:
-    param_h0_pp.name = 'h0_ignorado'
-    # Atualiza as referências e os mapeamentos internos do objeto GetDist
-    sample_pp.setParamNames(sample_pp.getParamNames())
-'''
-
-params = ['h0', 'q0', 'j0']
-
-samples, labels = mount_samples(analises)
-#limites = {'q0': [-1.0, 0.0],
-#           'j0': [-0.5, 1.0]}
-
-gerar_plot(nome_arquivo, samples, params, labels, fonte_legenda=14, ftype='png')#, param_limits=limites)
-print('Plot feito com sucesso!')
